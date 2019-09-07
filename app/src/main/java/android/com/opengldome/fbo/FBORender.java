@@ -63,8 +63,8 @@ public class FBORender implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mFBOFragment = CommonUtils.loadShader(Application.getInstand(), GLES30.GL_FRAGMENT_SHADER, "fragment.glsl");
-        mFBOVertex = CommonUtils.loadShader(Application.getInstand(), GLES30.GL_VERTEX_SHADER, "vertex.glsl");
+        mFBOFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "fragment.glsl");
+        mFBOVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "vertex.glsl");
 
         mFBOProgramObject = GLES30.glCreateProgram();
         GLES30.glAttachShader(mFBOProgramObject, mFBOFragment);
@@ -101,8 +101,8 @@ public class FBORender implements GLSurfaceView.Renderer {
 
         GLES30.glEnable(GLES30.GL_TEXTURE_2D);
 
-        mFragment = CommonUtils.loadShader(Application.getInstand(), GLES30.GL_FRAGMENT_SHADER, "fbo/fragment.glsl");
-        mVertex = CommonUtils.loadShader(Application.getInstand(), GLES30.GL_VERTEX_SHADER, "fbo/vertex.glsl");
+        mFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "fbo/fragment.glsl");
+        mVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "fbo/vertex.glsl");
 
         mProgramObject = GLES30.glCreateProgram();
         GLES30.glAttachShader(mFBOProgramObject, mFragment);
@@ -121,8 +121,8 @@ public class FBORender implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        mWidth = width;
-        mHeight = height;
+//        mWidth = width;
+//        mHeight = height;
     }
 
     @Override

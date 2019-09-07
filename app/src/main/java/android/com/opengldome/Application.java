@@ -12,7 +12,7 @@ public class Application extends android.app.Application {
         mContext = this;
     }
 
-    public static Context getInstand(){
+    public static Context getInstance(){
         return mContext;
     }
 }
