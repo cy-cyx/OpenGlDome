@@ -20,6 +20,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".fbo.FBOActivity" />
+        <activity android:name=".mvp.MVPActivity" />
     </application>
 
 </manifest>

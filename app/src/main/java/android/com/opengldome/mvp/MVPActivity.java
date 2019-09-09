@@ -1,4 +1,4 @@
-package android.com.opengldome.fbo;
+package android.com.opengldome.mvp;
 
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -7,9 +7,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
- * 帧缓冲区测试dome
+ * mvp矩阵例子和最简单的opengl例子
  */
-public class FBOActivity extends AppCompatActivity {
+public class MVPActivity extends AppCompatActivity {
 
     private GLSurfaceView mGlSurfaceView;
 
@@ -18,7 +18,7 @@ public class FBOActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mGlSurfaceView = new GLSurfaceView(this);
         mGlSurfaceView.setEGLContextClientVersion(3);
-        mGlSurfaceView.setRenderer(new FBORender());
+        mGlSurfaceView.setRenderer(new MVPRender());
         setContentView(mGlSurfaceView);
     }
 }

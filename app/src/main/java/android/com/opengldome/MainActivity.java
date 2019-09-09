@@ -1,6 +1,7 @@
 package android.com.opengldome;
 
 import android.com.opengldome.fbo.FBOActivity;
+import android.com.opengldome.mvp.MVPActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -14,8 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Class[] classes = new Class[]{FBOActivity.class};
-    private String[] names = new String[]{"帧缓冲区"};
+    private Class[] classes = new Class[]{FBOActivity.class,
+            MVPActivity.class};
+    private String[] names = new String[]{"帧缓冲区",
+            "MVP矩阵"};
 
     private RecyclerView mRecyclerView;
 
