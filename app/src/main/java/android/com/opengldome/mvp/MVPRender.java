@@ -64,7 +64,7 @@ public class MVPRender implements GLSurfaceView.Renderer {
 
         float ratio = (float) width / height;
         //设置透视投影
-        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 5f, 7f);
+        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 4f, 7f);
         //设置相机位置
         Matrix.setLookAtM(mViewMatrax, 0, 0, 0, 7.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
         //计算变换矩阵
