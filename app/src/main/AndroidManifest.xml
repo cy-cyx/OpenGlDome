@@ -21,6 +21,7 @@
         </activity>
         <activity android:name=".fbo.FBOActivity" />
         <activity android:name=".mvp.MVPActivity" />
+        <activity android:name=".light.LightActivity" />
     </application>
 
 </manifest>
