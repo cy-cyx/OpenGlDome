@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private Class[] classes = new Class[]{FBOActivity.class,
             MVPActivity.class, LightActivity.class};
     private String[] names = new String[]{"帧缓冲区",
-            "MVP矩阵", "冯氏光照模型"};
+            "MVP矩阵", "冯氏光照模型(平行光)"};
 
     private RecyclerView mRecyclerView;
 
