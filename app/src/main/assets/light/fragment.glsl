@@ -18,7 +18,7 @@ void main() {
 
     // 环境光，环境必定存在环境光照
     vec4 ambienceColor;
-    float ambientStrength = 0.1f;
+    float ambientStrength = 0.2f;
     vec3 ambient = ambientStrength * vLightColor.rgb;
     vec3 result = ambient * vObjectColor.rgb;
     ambienceColor = vec4(result, 1.f);
@@ -33,7 +33,7 @@ void main() {
     float specularStrength = 0.5f;
     vec4 viewDir = normalize(p_position - vEyeLocal);// 眼睛方向
     vec4 reflectDir = normalize(reflect(vLightDir, p_normal));// 反射光方向
-    float spec  = pow(max(dot(viewDir, reflectDir), 0.f), 5.f);/*平方值与网上不同32*/
+    float spec  = pow(max(dot(viewDir, reflectDir), 0.f), 4.f);/*平方值与网上不同32*/
     vec4 specularColor = specularStrength * spec * vLightColor;
 
     frag_color = ambienceColor + diffusColor + specularColor;
