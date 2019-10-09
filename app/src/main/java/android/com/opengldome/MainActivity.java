@@ -1,5 +1,6 @@
 package android.com.opengldome;
 
+import android.com.opengldome.blend.BlendActivity;
 import android.com.opengldome.fbo.FBOActivity;
 import android.com.opengldome.light.LightActivity;
 import android.com.opengldome.mvp.MVPActivity;
@@ -17,9 +18,9 @@ import androidx.recyclerview.widget.RecyclerView;
 public class MainActivity extends AppCompatActivity {
 
     private Class[] classes = new Class[]{FBOActivity.class,
-            MVPActivity.class, LightActivity.class};
+            MVPActivity.class, LightActivity.class, BlendActivity.class};
     private String[] names = new String[]{"帧缓冲区",
-            "MVP矩阵", "冯氏光照模型(平行光)"};
+            "MVP矩阵", "冯氏光照模型(平行光)", "混合模式"};
 
     private RecyclerView mRecyclerView;
 

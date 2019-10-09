@@ -25,4 +25,15 @@ public class LightActivity extends AppCompatActivity {
         setContentView(mGlSurfaceView);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mGlSurfaceView.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGlSurfaceView.onResume();
+    }
 }

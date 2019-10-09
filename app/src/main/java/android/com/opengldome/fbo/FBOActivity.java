@@ -21,4 +21,21 @@ public class FBOActivity extends AppCompatActivity {
         mGlSurfaceView.setRenderer(new FBORender());
         setContentView(mGlSurfaceView);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mGlSurfaceView.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGlSurfaceView.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }
