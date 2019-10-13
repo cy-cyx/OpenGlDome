@@ -62,8 +62,8 @@ public class BlendRender implements GLSurfaceView.Renderer {
         int MIXE_SRC_ALPHA_SATURATE = GLES30.GL_SRC_ALPHA_SATURATE;  // mix(输入常量透明，1 - 目标常量透明度)
     }
 
-    int mNixeModeSrc = MixedMode.MIXE_SRC_COLOR;
-    int mMixeModeDst = MixedMode.MIXE_DST_COLOR;
+    int mNixeModeSrc = MixedMode.MIXE_CONSTANT_COLOR;
+    int mMixeModeDst = MixedMode.MIXE_CONSTANT_COLOR;
 
     @interface Sparate {
         int Sparate_ADD = GLES30.GL_FUNC_ADD; // 累加
@@ -90,6 +90,8 @@ public class BlendRender implements GLSurfaceView.Renderer {
         GLES30.glEnable(GLES30.GL_TEXTURE_2D);//启用纹理贴图
         // 混合
         GLES30.glEnable(GLES30.GL_BLEND);
+        // 设置常量像素
+        GLES30.glBlendColor(.3f, .3f, 3.f, 1.f);
 
         mWidth = width;
         mHeight = height;
