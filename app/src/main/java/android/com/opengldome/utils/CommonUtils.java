@@ -2,7 +2,9 @@ package android.com.opengldome.utils;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.opengl.GLES30;
+import android.opengl.GLUtils;
 import android.util.Log;
 
 import java.io.InputStream;
@@ -53,6 +55,27 @@ public class CommonUtils {
             return -1;
         }
         return shader;
+    }
+
+    /**
+     * 新建一个新纹理
+     *
+     * @param width  宽
+     * @param height 高
+     */
+    public static int newTexture(int width, int height, Bitmap bitmap) {
+        int texture;
+        int[] textures = new int[1];
+        GLES30.glGenTextures(1, textures, 0);
+        texture = textures[0];
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture);
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA, width, height, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, null);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_GREATER);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_GREATER);
+        GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0);
+        return texture;
     }
 
     private static String uRes(Resources mRes, String path) {

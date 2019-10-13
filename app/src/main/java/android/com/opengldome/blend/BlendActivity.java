@@ -1,5 +1,7 @@
 package android.com.opengldome.blend;
 
+import android.com.opengldome.R;
+import android.graphics.BitmapFactory;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.ViewGroup;
@@ -22,10 +24,10 @@ public class BlendActivity extends AppCompatActivity {
         addContentView(mContainerFl, mFl);
         {
             mGlSurfaceView = new GLSurfaceView(this);
-            mGlSurfaceView.setRenderer(new BlendRender());
+            mGlSurfaceView.setEGLContextClientVersion(3);
+            mGlSurfaceView.setRenderer(new BlendRender(this));
             mFl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             mContainerFl.addView(mGlSurfaceView, mFl);
-
         }
     }
 
