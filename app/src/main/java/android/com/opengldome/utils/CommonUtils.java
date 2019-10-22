@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.opengl.GLES30;
 import android.opengl.GLUtils;
-import android.util.Log;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -42,8 +41,7 @@ public class CommonUtils {
         int[] compiled = new int[1];
         shader = GLES30.glCreateShader(type);
         if (shader == 0) {
-            Log.e("xx", "获得Shader资源id失败");
-            return -1;
+            throw new RuntimeException("获得Shader资源id失败");
         }
         GLES30.glShaderSource(shader, uRes(context.getResources(), shaderSrc));
         GLES30.glCompileShader(shader);
@@ -51,14 +49,36 @@ public class CommonUtils {
         if (compiled[0] == 0) {
             String s = GLES30.glGetShaderInfoLog(shader);
             GLES30.glDeleteShader(shader);
-            Log.e("xx", "Shader联接资源失败,ShaderInfoLog: " + s);
-            return -1;
+            throw new RuntimeException("Shader联接资源失败,ShaderInfoLog:" + s);
         }
         return shader;
     }
 
     /**
-     * 新建一个新纹理
+     * @param fragment 顶点着色器文件
+     * @param vertex   片段着色器文件
+     * @return program
+     */
+    public static int createProgram(Context context, String fragment, String vertex) {
+        int program = 0;
+
+        int frag = loadShader(context, GLES30.GL_FRAGMENT_SHADER, fragment);
+        int vert = loadShader(context, GLES30.GL_VERTEX_SHADER, vertex);
+        program = GLES30.glCreateProgram();
+        GLES30.glAttachShader(program, frag);
+        GLES30.glAttachShader(program, vert);
+        GLES30.glLinkProgram(program);
+        int[] compiled = new int[1];
+        GLES30.glGetProgramiv(program, GLES30.GL_COMPILE_STATUS, compiled, 0);
+        if (compiled[0] == 0) {
+            String s = GLES30.glGetProgramInfoLog(program);
+            throw new RuntimeException("ProgramLink失败,ProgramInfoLog:" + s);
+        }
+        return program;
+    }
+
+    /**
+     * 使用bitmap新建一个新纹理
      *
      * @param width  宽
      * @param height 高
@@ -75,6 +95,27 @@ public class CommonUtils {
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_GREATER);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_GREATER);
         GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0);
+        return texture;
+    }
+
+
+    /**
+     * 新建一个新纹理
+     *
+     * @param width  宽
+     * @param height 高
+     */
+    public static int newTexture(int width, int height) {
+        int texture;
+        int[] textures = new int[1];
+        GLES30.glGenTextures(1, textures, 0);
+        texture = textures[0];
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture);
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA, width, height, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, null);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_GREATER);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_GREATER);
         return texture;
     }
 

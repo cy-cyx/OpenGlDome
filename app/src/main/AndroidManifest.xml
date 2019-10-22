@@ -23,6 +23,7 @@
         <activity android:name=".mvp.MVPActivity" />
         <activity android:name=".light.LightActivity" />
         <activity android:name=".blend.BlendActivity" />
+        <activity android:name=".shadows.ShadowsActivity" />
     </application>
 
 </manifest>
