@@ -58,7 +58,6 @@ public class TextureRender implements GLSurfaceView.Renderer {
 
         vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
         vTexcoord = GLES30.glGetAttribLocation(mProgramObject, "vTexcoord");
-        uTexture = GLES30.glGetUniformLocation(mProgramObject, "uTexture");
 
         GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(vPosition);

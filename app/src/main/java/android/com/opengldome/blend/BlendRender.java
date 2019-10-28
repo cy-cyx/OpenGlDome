@@ -19,11 +19,14 @@ public class BlendRender implements GLSurfaceView.Renderer {
 
     private int mWidth;
     private int mHeight;
+
+    private int mProgramObject;
+    private int vPosition;
+    private int vTexcoord;
+
     private int mTexture1;
     private int mTexture2;
-    int mFragment;
-    int mVertex;
-    int mProgramObject;
+
 
     private FloatBuffer bPos;
     private final float[] sPos = {
@@ -83,6 +86,16 @@ public class BlendRender implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         bPos = CommonUtils.fToB(sPos);
         bCoord = CommonUtils.fToB(sCoord);
+
+        mProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.texture_frag, R.raw.texture_vert);
+        vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
+        vTexcoord = GLES30.glGetAttribLocation(mProgramObject, "vTexcoord");
+
+        GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
+        GLES30.glEnableVertexAttribArray(vPosition);
+
+        GLES30.glVertexAttribPointer(vTexcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
+        GLES30.glEnableVertexAttribArray(vTexcoord);
     }
 
     @Override
@@ -96,21 +109,6 @@ public class BlendRender implements GLSurfaceView.Renderer {
         mWidth = width;
         mHeight = height;
 
-        mFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "texture/fragment.glsl");
-        mVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "texture/vertex.glsl");
-
-        mProgramObject = GLES30.glCreateProgram();
-        GLES30.glAttachShader(mProgramObject, mFragment);
-        GLES30.glAttachShader(mProgramObject, mVertex);
-
-        GLES30.glLinkProgram(mProgramObject);
-
-        GLES30.glVertexAttribPointer(5, 3, GLES30.GL_FLOAT, false, 0, bPos);
-        GLES30.glEnableVertexAttribArray(0);
-
-        GLES30.glVertexAttribPointer(6, 2, GLES30.GL_FLOAT, false, 0, bCoord);
-        GLES30.glEnableVertexAttribArray(1);
-
         mTexture1 = CommonUtils.newTexture(mWidth, mHeight, BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1));
         mTexture2 = CommonUtils.newTexture(mWidth, mHeight, BitmapFactory.decodeResource(context.getResources(), R.drawable.pic2));
     }
@@ -119,7 +117,7 @@ public class BlendRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
 
-        gl.glViewport(0, 0, mWidth, mHeight);
+        GLES30.glViewport(0, 0, mWidth, mHeight);
 
         if (mSparate == Sparate.Sparate_MIN) {
             gl.glClearColor(1.f, 1.f, 1.f, 1.f);
@@ -131,13 +129,9 @@ public class BlendRender implements GLSurfaceView.Renderer {
 
         // 画第一层
         GLES30.glUseProgram(mProgramObject);
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTexture1);
-        GLES30.glUniform1i(7, mTexture1);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
 
         // 画第二层
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTexture2);
-        GLES30.glUniform1i(7, mTexture2);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
     }
 }
