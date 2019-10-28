@@ -13,10 +13,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class MVPRender implements GLSurfaceView.Renderer {
 
-    int mFragment;
-    int mVertex;
     int mProgramObject;
-    int mMVPMatrix;
 
     float[] mPoint = {-1f, -1f, 0f,
             0f, 1f, 0f,
@@ -42,19 +39,13 @@ public class MVPRender implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "mvp/fragment.glsl");
-        mVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "mvp/vertex.glsl");
-        mProgramObject = GLES30.glCreateProgram();
-        GLES30.glAttachShader(mProgramObject, mFragment);
-        GLES30.glAttachShader(mProgramObject, mVertex);
-        GLES30.glLinkProgram(mProgramObject);
+        mProgramObject = CommonUtils.createProgram(Application.getInstance(),
+                "common/fragmentMvp.glsl","common/vertexMvp.glsl");
 
         GLES30.glVertexAttribPointer(0, 3, GLES30.GL_FLOAT, false, 0, mColorBuffer);
         GLES30.glEnableVertexAttribArray(0);
         GLES30.glVertexAttribPointer(1, 3, GLES30.GL_FLOAT, false, 0, mPointBuffer);
         GLES30.glEnableVertexAttribArray(1);
-
-        mMVPMatrix = GLES30.glGetUniformLocation(mProgramObject, "uMVPMatrix");
     }
 
     @Override
@@ -78,7 +69,7 @@ public class MVPRender implements GLSurfaceView.Renderer {
         GLES30.glClear(GLES30.GL_DEPTH_BUFFER_BIT);
         GLES30.glClearColor(1, 1, 1, 1);
         GLES30.glUseProgram(mProgramObject);
-        GLES30.glUniformMatrix4fv(mMVPMatrix, 1, false, mvpMatrix, 0);
+        GLES30.glUniformMatrix4fv(2, 1, false, mvpMatrix, 0);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3);
     }
 }

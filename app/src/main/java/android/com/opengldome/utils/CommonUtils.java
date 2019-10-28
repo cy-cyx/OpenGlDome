@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.opengl.GLES30;
 import android.opengl.GLUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -55,25 +56,57 @@ public class CommonUtils {
     }
 
     /**
+     * 创建Shader资源
+     *
+     * @param type      shader类型
+     * @param shaderSrc 资源路径
+     * @return -1为失败状态
+     */
+    public static int loadShader(Context context, int type, int shaderSrc) {
+        int shader;
+        int[] compiled = new int[1];
+        shader = GLES30.glCreateShader(type);
+        if (shader == 0) {
+            throw new RuntimeException("获得Shader资源id失败");
+        }
+        GLES30.glShaderSource(shader, uRes(context.getResources(), shaderSrc));
+        GLES30.glCompileShader(shader);
+        GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, compiled, 0);
+        if (compiled[0] == 0) {
+            String s = GLES30.glGetShaderInfoLog(shader);
+            GLES30.glDeleteShader(shader);
+            throw new RuntimeException("Shader联接资源失败,ShaderInfoLog:" + s);
+        }
+        return shader;
+    }
+
+    /**
      * @param fragment 顶点着色器文件
      * @param vertex   片段着色器文件
      * @return program
      */
     public static int createProgram(Context context, String fragment, String vertex) {
-        int program = 0;
-
         int frag = loadShader(context, GLES30.GL_FRAGMENT_SHADER, fragment);
         int vert = loadShader(context, GLES30.GL_VERTEX_SHADER, vertex);
-        program = GLES30.glCreateProgram();
+        int program = GLES30.glCreateProgram();
         GLES30.glAttachShader(program, frag);
         GLES30.glAttachShader(program, vert);
         GLES30.glLinkProgram(program);
-        int[] compiled = new int[1];
-        GLES30.glGetProgramiv(program, GLES30.GL_COMPILE_STATUS, compiled, 0);
-        if (compiled[0] == 0) {
-            String s = GLES30.glGetProgramInfoLog(program);
-            throw new RuntimeException("ProgramLink失败,ProgramInfoLog:" + s);
-        }
+        return program;
+    }
+
+    /**
+     * @param fragment 顶点着色器文件
+     * @param vertex   片段着色器文件
+     * @return program
+     */
+    public static int createProgram(Context context, int fragment, int vertex) {
+        int frag = loadShader(context, GLES30.GL_FRAGMENT_SHADER, fragment);
+        int vert = loadShader(context, GLES30.GL_VERTEX_SHADER, vertex);
+        int program = GLES30.glCreateProgram();
+        GLES30.glAttachShader(program, frag);
+        GLES30.glAttachShader(program, vert);
+        GLES30.glLinkProgram(program);
         return program;
     }
 
@@ -119,17 +152,49 @@ public class CommonUtils {
         return texture;
     }
 
-    private static String uRes(Resources mRes, String path) {
+    private static String uRes(Resources res, int path) {
         StringBuilder result = new StringBuilder();
+        InputStream is = null;
         try {
-            InputStream is = mRes.getAssets().open(path);
+            is = res.openRawResource(path);
             int ch;
             byte[] buffer = new byte[1024];
             while (-1 != (ch = is.read(buffer))) {
                 result.append(new String(buffer, 0, ch));
             }
         } catch (Exception e) {
-            return null;
+            // nodo
+        } finally {
+            if (is != null)
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    // nodo
+                }
+        }
+        return result.toString().replaceAll("\\r\\n", "\n");
+    }
+
+    private static String uRes(Resources mRes, String path) {
+        StringBuilder result = new StringBuilder();
+        InputStream is = null;
+        try {
+            is = mRes.getAssets().open(path);
+            int ch;
+            byte[] buffer = new byte[1024];
+            while (-1 != (ch = is.read(buffer))) {
+                result.append(new String(buffer, 0, ch));
+            }
+        } catch (Exception e) {
+            // nodo
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    // nodo
+                }
+            }
         }
         return result.toString().replaceAll("\\r\\n", "\n");
     }

@@ -99,7 +99,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
 
         //  深度纹理
         mProgramObjectDepth = CommonUtils.createProgram(Application.getInstance(),
-                "fragmentMvp.glsl", "vertexMvp.glsl");
+                "common/fragmentMvp.glsl", "common/vertexMvp.glsl");
 
 
     }

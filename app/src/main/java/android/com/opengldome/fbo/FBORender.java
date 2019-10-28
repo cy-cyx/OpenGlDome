@@ -12,8 +12,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class FBORender implements GLSurfaceView.Renderer {
 
-    int mFBOFragment;
-    int mFBOVertex;
     int mFBOProgramObject;
 
     int mFragment;
@@ -49,8 +47,6 @@ public class FBORender implements GLSurfaceView.Renderer {
             1f, 1f              // 右下角
     };
 
-    int mTexture;
-
     int mWidth = 1080;
     int mHeight = 1680;
 
@@ -63,14 +59,10 @@ public class FBORender implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mFBOFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "fragment.glsl");
-        mFBOVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "vertex.glsl");
 
-        mFBOProgramObject = GLES30.glCreateProgram();
-        GLES30.glAttachShader(mFBOProgramObject, mFBOFragment);
-        GLES30.glAttachShader(mFBOProgramObject, mFBOVertex);
 
-        GLES30.glLinkProgram(mFBOProgramObject);
+        mFBOProgramObject = CommonUtils.createProgram(Application.getInstance(),
+                "common/fragment.glsl", "common/vertex.glsl");
 
         GLES30.glVertexAttribPointer(0, 3, GLES30.GL_FLOAT, false, 0, mFBOPointBuffer);
         GLES30.glEnableVertexAttribArray(0);
@@ -78,8 +70,8 @@ public class FBORender implements GLSurfaceView.Renderer {
         GLES30.glVertexAttribPointer(1, 3, GLES30.GL_FLOAT, false, 0, mFBOColorBuffer);
         GLES30.glEnableVertexAttribArray(1);
 
-        mFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "fbo/fragment.glsl");
-        mVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "fbo/vertex.glsl");
+        mFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "texture/fragment.glsl");
+        mVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "texture/vertex.glsl");
 
         mProgramObject = GLES30.glCreateProgram();
         GLES30.glAttachShader(mFBOProgramObject, mFragment);
@@ -87,12 +79,10 @@ public class FBORender implements GLSurfaceView.Renderer {
 
         GLES30.glLinkProgram(mProgramObject);
 
-        GLES30.glVertexAttribPointer(2, 3, GLES30.GL_FLOAT, false, 0, bPos);
+        GLES30.glVertexAttribPointer(5, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(2);
-        GLES30.glVertexAttribPointer(3, 2, GLES30.GL_FLOAT, false, 0, bCoord);
+        GLES30.glVertexAttribPointer(6, 2, GLES30.GL_FLOAT, false, 0, bCoord);
         GLES30.glEnableVertexAttribArray(3);
-
-        mTexture = GLES30.glGetUniformLocation(mProgramObject, "vTexture");
     }
 
     @Override
@@ -135,11 +125,11 @@ public class FBORender implements GLSurfaceView.Renderer {
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3);
 
         // 再画到屏幕上
-        GLES30.glUniform1i(mTexture, mColorTexture);
+//        GLES30.glUseProgram(mProgramObject);
+        GLES30.glUniform1i(7, mColorTexture);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
         GLES30.glClearColor(1, 1, 1, 0);
-        GLES30.glUseProgram(mProgramObject);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 4);
     }
 }
