@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.opengl.GLES30;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +45,7 @@ public class CommonUtils {
         if (shader == 0) {
             throw new RuntimeException("获得Shader资源id失败");
         }
-        GLES30.glShaderSource(shader, uRes(context.getResources(), shaderSrc));
+        GLES30.glShaderSource(shader, loadRawRes(context.getResources(), shaderSrc));
         GLES30.glCompileShader(shader);
         GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, compiled, 0);
         if (compiled[0] == 0) {
@@ -62,14 +63,14 @@ public class CommonUtils {
      * @param shaderSrc 资源路径
      * @return -1为失败状态
      */
-    public static int loadShader(Context context, int type, int shaderSrc) {
+    private static int loadShader(Context context, int type, int shaderSrc) {
         int shader;
         int[] compiled = new int[1];
         shader = GLES30.glCreateShader(type);
         if (shader == 0) {
             throw new RuntimeException("获得Shader资源id失败");
         }
-        GLES30.glShaderSource(shader, uRes(context.getResources(), shaderSrc));
+        GLES30.glShaderSource(shader, loadRawRes(context.getResources(), shaderSrc));
         GLES30.glCompileShader(shader);
         GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, compiled, 0);
         if (compiled[0] == 0) {
@@ -152,7 +153,7 @@ public class CommonUtils {
         return texture;
     }
 
-    private static String uRes(Resources res, int path) {
+    private static String loadRawRes(Resources res, int path) {
         StringBuilder result = new StringBuilder();
         InputStream is = null;
         try {
@@ -175,7 +176,7 @@ public class CommonUtils {
         return result.toString().replaceAll("\\r\\n", "\n");
     }
 
-    private static String uRes(Resources mRes, String path) {
+    private static String loadRawRes(Resources mRes, String path) {
         StringBuilder result = new StringBuilder();
         InputStream is = null;
         try {

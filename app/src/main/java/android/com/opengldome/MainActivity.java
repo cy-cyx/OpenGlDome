@@ -5,6 +5,7 @@ import android.com.opengldome.fbo.FBOActivity;
 import android.com.opengldome.light.LightActivity;
 import android.com.opengldome.mvp.MVPActivity;
 import android.com.opengldome.shadows.ShadowsActivity;
+import android.com.opengldome.texture.TextureActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -20,10 +21,10 @@ public class MainActivity extends AppCompatActivity {
 
     private Class[] classes = new Class[]{FBOActivity.class,
             MVPActivity.class, LightActivity.class, BlendActivity.class,
-            ShadowsActivity.class};
+            ShadowsActivity.class, TextureActivity.class};
     private String[] names = new String[]{"帧缓冲区",
             "MVP矩阵", "冯氏光照模型(平行光)", "混合模式",
-            "阴影（深度纹理）"};
+            "阴影（深度纹理）", "纹理贴图"};
 
     private RecyclerView mRecyclerView;
 
