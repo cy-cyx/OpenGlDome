@@ -23,6 +23,7 @@ public class BlendRender implements GLSurfaceView.Renderer {
     private int mProgramObject;
     private int vPosition;
     private int vTexcoord;
+    private int uTexture;
 
     private int mTexture1;
     private int mTexture2;
@@ -90,12 +91,16 @@ public class BlendRender implements GLSurfaceView.Renderer {
         mProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.texture_frag, R.raw.texture_vert);
         vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
         vTexcoord = GLES30.glGetAttribLocation(mProgramObject, "vTexcoord");
+        uTexture = GLES30.glGetUniformLocation(mProgramObject, "uTexture");
 
         GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(vPosition);
 
         GLES30.glVertexAttribPointer(vTexcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
         GLES30.glEnableVertexAttribArray(vTexcoord);
+
+        mTexture1 = CommonUtils.newTexture(0, BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1));
+        mTexture2 = CommonUtils.newTexture(1, BitmapFactory.decodeResource(context.getResources(), R.drawable.pic2));
     }
 
     @Override
@@ -108,9 +113,6 @@ public class BlendRender implements GLSurfaceView.Renderer {
 
         mWidth = width;
         mHeight = height;
-
-        mTexture1 = CommonUtils.newTexture(mWidth, mHeight, BitmapFactory.decodeResource(context.getResources(), R.drawable.pic1));
-        mTexture2 = CommonUtils.newTexture(mWidth, mHeight, BitmapFactory.decodeResource(context.getResources(), R.drawable.pic2));
     }
 
     @Override
@@ -129,9 +131,11 @@ public class BlendRender implements GLSurfaceView.Renderer {
 
         // 画第一层
         GLES30.glUseProgram(mProgramObject);
+        GLES30.glUniform1i(uTexture, 0);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
 
         // 画第二层
+        GLES30.glUniform1i(uTexture, 1);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
     }
 }

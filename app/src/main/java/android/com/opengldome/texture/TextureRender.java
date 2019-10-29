@@ -58,6 +58,7 @@ public class TextureRender implements GLSurfaceView.Renderer {
 
         vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
         vTexcoord = GLES30.glGetAttribLocation(mProgramObject, "vTexcoord");
+        uTexture = GLES30.glGetUniformLocation(mProgramObject, "uTexture");
 
         GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(vPosition);
@@ -71,8 +72,7 @@ public class TextureRender implements GLSurfaceView.Renderer {
         mWidth = width;
         mHeight = height;
 
-        mTexture = CommonUtils.newTexture(mWidth, mHeight, BitmapFactory.decodeResource(Application.getInstance().getResources(), R.drawable.pic1));
-        GLES30.glUniform1i(uTexture, mTexture);
+        mTexture = CommonUtils.newTexture(1, BitmapFactory.decodeResource(Application.getInstance().getResources(), R.drawable.pic1));
     }
 
     @Override
@@ -86,6 +86,7 @@ public class TextureRender implements GLSurfaceView.Renderer {
         GLES30.glClearColor(1.f, 1.f, 1.f, 1.f);
 
         GLES30.glUseProgram(mProgramObject);
+        GLES30.glUniform1i(uTexture, 1);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
     }
 }
