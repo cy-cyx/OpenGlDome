@@ -1,6 +1,7 @@
 package android.com.opengldome.fbo;
 
 import android.com.opengldome.Application;
+import android.com.opengldome.R;
 import android.com.opengldome.utils.CommonUtils;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
@@ -12,24 +13,27 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class FBORender implements GLSurfaceView.Renderer {
 
-    int mFBOProgramObject;
+    private int mProgramObject;
+    private int vPosition;
+    private int vColor;
 
-    int mFragment;
-    int mVertex;
-    int mProgramObject;
-
-    float[] mFBOPoint = {-1f, -1f, 0f,
+    private float[] sPoint = {-1f, -1f, 0f,
             0f, 1f, 0f,
             1f, -1f, 0f};
-    FloatBuffer mFBOPointBuffer;
+    private FloatBuffer bPointBuffer;
 
-    float[] mFBOColor = {1f, 1f, 0f,
+    private float[] sColor = {1f, 1f, 0f,
             1f, 0f, 1f,
             0f, 1f, 1f};
-    FloatBuffer mFBOColorBuffer;
+    private FloatBuffer mbColorBuffer;
 
-    int mColorTexture;
-    int mFrameBuffers;
+    private int mFBOProgramObject;
+    private int vFBOPosition;
+    private int vFBOTexcoord;
+    private int uFBOTexture;
+
+    private int mColorTexture;
+    private int mFrameBuffers;
 
     private FloatBuffer bPos;
     private final float[] sPos = {
@@ -39,50 +43,36 @@ public class FBORender implements GLSurfaceView.Renderer {
             1.0f, -1.0f, 0f       // 右下角
     };
 
+    // todo 由于安卓纹理坐标是左上角是原点、FBO纹理坐标的左下角是原点
     private FloatBuffer bCoord;
     private final float[] sCoord = {
-            0f, 0f,             // 左上角
-            0f, 1f,              // 左下角
-            1f, 0f,              // 右上角
-            1f, 1f              // 右下角
+            0f, 1f,             // 左上角
+            0f, 0f,              // 左下角
+            1f, 1f,              // 右上角
+            1f, 0f              // 右下角
     };
 
-    int mWidth = 1080;
-    int mHeight = 1680;
+    private int mWidth;
+    private int mHeight;
 
     public FBORender() {
-        mFBOPointBuffer = CommonUtils.fToB(mFBOPoint);
-        mFBOColorBuffer = CommonUtils.fToB(mFBOColor);
+        bPointBuffer = CommonUtils.fToB(sPoint);
+        mbColorBuffer = CommonUtils.fToB(sColor);
         bPos = CommonUtils.fToB(sPos);
         bCoord = CommonUtils.fToB(sCoord);
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        mProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.basis_frag, R.raw.basis_vert);
+        vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
+        vColor = GLES30.glGetAttribLocation(mProgramObject, "vColor");
 
-
-        mFBOProgramObject = CommonUtils.createProgram(Application.getInstance(),
-                "common/fragment.glsl", "common/vertex.glsl");
-
-        GLES30.glVertexAttribPointer(0, 3, GLES30.GL_FLOAT, false, 0, mFBOPointBuffer);
-        GLES30.glEnableVertexAttribArray(0);
-
-        GLES30.glVertexAttribPointer(1, 3, GLES30.GL_FLOAT, false, 0, mFBOColorBuffer);
-        GLES30.glEnableVertexAttribArray(1);
-
-        mFragment = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_FRAGMENT_SHADER, "texture/fragment.glsl");
-        mVertex = CommonUtils.loadShader(Application.getInstance(), GLES30.GL_VERTEX_SHADER, "texture/vertex.glsl");
-
-        mProgramObject = GLES30.glCreateProgram();
-        GLES30.glAttachShader(mFBOProgramObject, mFragment);
-        GLES30.glAttachShader(mFBOProgramObject, mVertex);
-
-        GLES30.glLinkProgram(mProgramObject);
-
-        GLES30.glVertexAttribPointer(5, 3, GLES30.GL_FLOAT, false, 0, bPos);
-        GLES30.glEnableVertexAttribArray(2);
-        GLES30.glVertexAttribPointer(6, 2, GLES30.GL_FLOAT, false, 0, bCoord);
-        GLES30.glEnableVertexAttribArray(3);
+        // 其实就是纹理贴图
+        mFBOProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.texture_frag, R.raw.texture_vert);
+        vFBOPosition = GLES30.glGetAttribLocation(mFBOProgramObject, "vPosition");
+        vFBOTexcoord = GLES30.glGetAttribLocation(mFBOProgramObject, "vTexcoord");
+        uFBOTexture = GLES30.glGetUniformLocation(mFBOProgramObject, "uTexture");
     }
 
     @Override
@@ -90,16 +80,7 @@ public class FBORender implements GLSurfaceView.Renderer {
         mWidth = width;
         mHeight = height;
 
-        int[] texture = new int[1];
-        GLES30.glGenTextures(1, texture, 0);
-
-        mColorTexture = texture[0];
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mColorTexture);
-        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA, mWidth, mHeight, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, null);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_GREATER);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_GREATER);
+        mColorTexture = CommonUtils.newTexture(1, mWidth, mHeight);
 
         int[] frameBuffers = new int[1];
         GLES30.glGenFramebuffers(1, frameBuffers, 0);
@@ -119,17 +100,25 @@ public class FBORender implements GLSurfaceView.Renderer {
 
         // 先画到帧缓冲区
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBuffers);
+        GLES30.glClearColor(1, 1, 1, 1);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
-        GLES30.glClearColor(1, 1, 1, 0);
-        GLES30.glUseProgram(mFBOProgramObject);
+        GLES30.glUseProgram(mProgramObject);
+        GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 0, bPointBuffer);
+        GLES30.glEnableVertexAttribArray(vPosition);
+        GLES30.glVertexAttribPointer(vColor, 3, GLES30.GL_FLOAT, false, 0, mbColorBuffer);
+        GLES30.glEnableVertexAttribArray(vColor);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3);
+        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
 
         // 再画到屏幕上
-//        GLES30.glUseProgram(mProgramObject);
-        GLES30.glUniform1i(7, mColorTexture);
-        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
+        GLES30.glClearColor(1, 1, 1, 1);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
-        GLES30.glClearColor(1, 1, 1, 0);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 4);
+        GLES30.glUseProgram(mFBOProgramObject);
+        GLES30.glVertexAttribPointer(vFBOPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
+        GLES30.glEnableVertexAttribArray(vFBOPosition);
+        GLES30.glVertexAttribPointer(vFBOTexcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
+        GLES30.glEnableVertexAttribArray(vFBOTexcoord);
+        GLES30.glUniform1i(uFBOTexture, 1);
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
     }
 }

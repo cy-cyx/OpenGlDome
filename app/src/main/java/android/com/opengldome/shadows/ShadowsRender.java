@@ -1,6 +1,5 @@
 package android.com.opengldome.shadows;
 
-import android.com.opengldome.Application;
 import android.com.opengldome.utils.CommonUtils;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
@@ -96,12 +95,6 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glEnable(GLES30.GL_DEPTH);
         bPosWithN = CommonUtils.fToB(sPosWithN);
         bLight = CommonUtils.fToB(sLight);
-
-        //  深度纹理
-        mProgramObjectDepth = CommonUtils.createProgram(Application.getInstance(),
-                "common/fragmentMvp.glsl", "common/vertexMvp.glsl");
-
-
     }
 
     @Override
