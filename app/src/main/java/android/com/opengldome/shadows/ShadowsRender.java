@@ -3,6 +3,7 @@ package android.com.opengldome.shadows;
 import android.com.opengldome.Application;
 import android.com.opengldome.R;
 import android.com.opengldome.utils.CommonUtils;
+import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -158,9 +159,23 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(mEyeMatrix, 0, tempMatrix, 0, tempMatrix1, 0);
 
         // 获得深度纹理
-        mDepthTexture = CommonUtils.newTexture(1, mWidth, mHeight);
+        int[] textures = new int[1];
+        GLES30.glGenTextures(1, textures, 0);
+        mDepthTexture = textures[0];
         GLES30.glActiveTexture(GLES30.GL_TEXTURE1);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mDepthTexture);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_FUNC, GLES30.GL_LEQUAL);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_MODE, GLES30.GL_NONE);
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_DEPTH_COMPONENT16, width, height, 0, GLES30.GL_DEPTH_COMPONENT, GLES30.GL_UNSIGNED_SHORT, null);
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
+
+        if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE)
+            throw new RuntimeException("缓冲区不完整");
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
 
         int[] frameBuffers = new int[1];
         GLES30.glGenFramebuffers(1, frameBuffers, 0);
@@ -189,8 +204,6 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glUniformMatrix4fv(uDepMatrix, 1, false, mLightMatrix, 0);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 36);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
-
-//        GLES30.glDisable(GLES30.GL_DEPTH_TEST);
 
         // 再画到屏幕上
         GLES30.glClearColor(1, 1, 1, 1);
