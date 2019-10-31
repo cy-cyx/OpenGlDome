@@ -31,15 +31,6 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
      * 点加法线
      */
     private final float[] sPosWithN = {
-            // 前面
-            -.5f, .5f, .5f, 0.f, 0.f, 1.f,
-            .5f, .5f, .5f, 0.f, 0.f, 1.f,
-            -.5f, -.5f, .5f, 0.f, 0.f, 1.f,
-
-            .5f, .5f, .5f, 0.f, 0.f, 1.f,
-            -.5f, -.5f, .5f, 0.f, 0.f, 1.f,
-            .5f, -.5f, .5f, 0.f, 0.f, 1.f,
-
             // 后面
             -.5f, .5f, -.5f, 0.f, 0.f, -1.f,
             .5f, .5f, -.5f, 0.f, 0.f, -1.f,
@@ -48,6 +39,15 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
             .5f, .5f, -.5f, 0.f, 0.f, -1.f,
             -.5f, -.5f, -.5f, 0.f, 0.f, -1.f,
             .5f, -.5f, -.5f, 0.f, 0.f, -1.f,
+
+            // 前面
+            -.5f, .5f, .5f, 0.f, 0.f, 1.f,
+            .5f, .5f, .5f, 0.f, 0.f, 1.f,
+            -.5f, -.5f, .5f, 0.f, 0.f, 1.f,
+
+            .5f, .5f, .5f, 0.f, 0.f, 1.f,
+            -.5f, -.5f, .5f, 0.f, 0.f, 1.f,
+            .5f, -.5f, .5f, 0.f, 0.f, 1.f,
 
             // 上面
             -.5f, .5f, .5f, 0.f, 1.f, 0.f,
@@ -67,15 +67,6 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
             -.5f, -.5f, -.5f, 0.f, -1.f, 0.f,
             .5f, -.5f, -.5f, 0.f, -1.f, 0.f,
 
-            // 右面
-            .5f, -.5f, .5f, 1.f, 0.f, 0.f,
-            .5f, .5f, .5f, 1.f, 0.f, 0.f,
-            .5f, -.5f, -.5f, 1.f, 0.f, 0.f,
-
-            .5f, .5f, .5f, 1.f, 0.f, 0.f,
-            .5f, -.5f, -.5f, 1.f, 0.f, 0.f,
-            .5f, .5f, -.5f, 1.f, 0.f, 0.f,
-
             // 左面
             -.5f, -.5f, .5f, -1.f, 0.f, 0.f,
             -.5f, .5f, .5f, -1.f, 0.f, 0.f,
@@ -84,11 +75,20 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
             -.5f, .5f, .5f, -1.f, 0.f, 0.f,
             -.5f, -.5f, -.5f, -1.f, 0.f, 0.f,
             -.5f, .5f, -.5f, -1.f, 0.f, 0.f,
+
+            // 右面
+            .5f, -.5f, .5f, 1.f, 0.f, 0.f,
+            .5f, .5f, .5f, 1.f, 0.f, 0.f,
+            .5f, -.5f, -.5f, 1.f, 0.f, 0.f,
+
+            .5f, .5f, .5f, 1.f, 0.f, 0.f,
+            .5f, -.5f, -.5f, 1.f, 0.f, 0.f,
+            .5f, .5f, -.5f, 1.f, 0.f, 0.f,
     };
     private FloatBuffer bPosWithN;
 
     // 点光源的位置
-    private final float[] sLight = new float[]{7.f, 7.f, 7.f};
+    private final float[] sLight = new float[]{0.f, 0.f, -7.f};
 
     private float[] mLightMatrix = new float[16];
 
@@ -164,13 +164,13 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         mDepthTexture = textures[0];
         GLES30.glActiveTexture(GLES30.GL_TEXTURE1);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mDepthTexture);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_FUNC, GLES30.GL_LEQUAL);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_MODE, GLES30.GL_NONE);
-        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_DEPTH_COMPONENT16, width, height, 0, GLES30.GL_DEPTH_COMPONENT, GLES30.GL_UNSIGNED_SHORT, null);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_FUNC, GLES30.GL_LEQUAL );
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_MODE, GLES30.GL_COMPARE_REF_TO_TEXTURE);
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_DEPTH_COMPONENT, width, height, 0, GLES30.GL_DEPTH_COMPONENT, GLES30.GL_UNSIGNED_SHORT, null);
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
 
         if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE)
@@ -193,6 +193,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
 
         GLES30.glEnable(GLES30.GL_TEXTURE_2D);
         GLES30.glEnable(GLES30.GL_DEPTH_TEST);
+        GLES30.glDepthFunc(GLES30.GL_ALWAYS);
 
         // 先画到帧缓冲区，获得深度纹理
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBuffers);
@@ -206,7 +207,6 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
 
         // 再画到屏幕上
-        GLES30.glClearColor(1, 1, 1, 1);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
         GLES30.glUseProgram(mFBOProgramObject);
         GLES30.glVertexAttribPointer(vFBOPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
