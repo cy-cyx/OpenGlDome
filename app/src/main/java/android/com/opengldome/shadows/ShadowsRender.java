@@ -3,11 +3,9 @@ package android.com.opengldome.shadows;
 import android.com.opengldome.Application;
 import android.com.opengldome.R;
 import android.com.opengldome.utils.CommonUtils;
-import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.util.Log;
 
 import java.nio.FloatBuffer;
 
@@ -88,7 +86,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
     private FloatBuffer bPosWithN;
 
     // 点光源的位置
-    private final float[] sLight = new float[]{0.f, 0.f, -7.f};
+    private final float[] sLight = new float[]{7.f, 7.f, -7.f};
 
     private float[] mLightMatrix = new float[16];
 
@@ -168,13 +166,9 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_FUNC, GLES30.GL_LEQUAL );
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_FUNC, GLES30.GL_LEQUAL);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_MODE, GLES30.GL_COMPARE_REF_TO_TEXTURE);
         GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_DEPTH_COMPONENT, width, height, 0, GLES30.GL_DEPTH_COMPONENT, GLES30.GL_UNSIGNED_SHORT, null);
-        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
-
-        if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE)
-            throw new RuntimeException("缓冲区不完整");
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
 
         int[] frameBuffers = new int[1];
@@ -185,6 +179,10 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glFramebufferRenderbuffer(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GLES30.GL_READ_FRAMEBUFFER, 0);
         GLES30.glFramebufferRenderbuffer(GLES30.GL_FRAMEBUFFER, GLES30.GL_STENCIL_ATTACHMENT, GLES30.GL_RENDERBUFFER, 0);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
+
+        if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE)
+            throw new RuntimeException("缓冲区不完整");
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
     }
 
     @Override
@@ -193,11 +191,12 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
 
         GLES30.glEnable(GLES30.GL_TEXTURE_2D);
         GLES30.glEnable(GLES30.GL_DEPTH_TEST);
-        GLES30.glDepthFunc(GLES30.GL_ALWAYS);
+        GLES30.glDepthFunc(GLES30.GL_LEQUAL);
 
         // 先画到帧缓冲区，获得深度纹理
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBuffers);
         GLES30.glClear(GLES30.GL_DEPTH_BUFFER_BIT);
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
         GLES30.glClearColor(1.f, 1.f, 1.f, 1.f);
         GLES30.glUseProgram(mProgramObjectDepth);
         GLES30.glVertexAttribPointer(vDepPosition, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
@@ -208,6 +207,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
 
         // 再画到屏幕上
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
+        GLES30.glClear(GLES30.GL_DEPTH_BUFFER_BIT);
         GLES30.glUseProgram(mFBOProgramObject);
         GLES30.glVertexAttribPointer(vFBOPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(vFBOPosition);
