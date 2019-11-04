@@ -30,109 +30,144 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
      */
     private final float[] sPosWithN = {
             // 后面
-            -.5f, .5f, -.5f, 0.f, 0.f, -1.f,
-            .5f, .5f, -.5f, 0.f, 0.f, -1.f,
-            -.5f, -.5f, -.5f, 0.f, 0.f, -1.f,
+            -.3f, .3f, -.3f, 0.f, 0.f, -1.f,
+            .3f, .3f, -.3f, 0.f, 0.f, -1.f,
+            -.3f, -.3f, -.3f, 0.f, 0.f, -1.f,
 
-            .5f, .5f, -.5f, 0.f, 0.f, -1.f,
-            -.5f, -.5f, -.5f, 0.f, 0.f, -1.f,
-            .5f, -.5f, -.5f, 0.f, 0.f, -1.f,
+            .3f, .3f, -.3f, 0.f, 0.f, -1.f,
+            -.3f, -.3f, -.3f, 0.f, 0.f, -1.f,
+            .3f, -.3f, -.3f, 0.f, 0.f, -1.f,
 
             // 前面
-            -.5f, .5f, .5f, 0.f, 0.f, 1.f,
-            .5f, .5f, .5f, 0.f, 0.f, 1.f,
-            -.5f, -.5f, .5f, 0.f, 0.f, 1.f,
+            -.3f, .3f, .3f, 0.f, 0.f, 1.f,
+            .3f, .3f, .3f, 0.f, 0.f, 1.f,
+            -.3f, -.3f, .3f, 0.f, 0.f, 1.f,
 
-            .5f, .5f, .5f, 0.f, 0.f, 1.f,
-            -.5f, -.5f, .5f, 0.f, 0.f, 1.f,
-            .5f, -.5f, .5f, 0.f, 0.f, 1.f,
+            .3f, .3f, .3f, 0.f, 0.f, 1.f,
+            -.3f, -.3f, .3f, 0.f, 0.f, 1.f,
+            .3f, -.3f, .3f, 0.f, 0.f, 1.f,
 
             // 上面
-            -.5f, .5f, .5f, 0.f, 1.f, 0.f,
-            .5f, .5f, .5f, 0.f, 1.f, 0.f,
-            -.5f, .5f, -.5f, 0.f, 1.f, 0.f,
+            -.3f, .3f, .3f, 0.f, 1.f, 0.f,
+            .3f, .3f, .3f, 0.f, 1.f, 0.f,
+            -.3f, .3f, -.3f, 0.f, 1.f, 0.f,
 
-            .5f, .5f, .5f, 0.f, 1.f, 0.f,
-            -.5f, .5f, -.5f, 0.f, 1.f, 0.f,
-            .5f, .5f, -.5f, 0.f, 1.f, 0.f,
+            .3f, .3f, .3f, 0.f, 1.f, 0.f,
+            -.3f, .3f, -.3f, 0.f, 1.f, 0.f,
+            .3f, .3f, -.3f, 0.f, 1.f, 0.f,
 
             // 下面
-            -.5f, -.5f, .5f, 0.f, -1.f, 0.f,
-            .5f, -.5f, .5f, 0.f, -1.f, 0.f,
-            -.5f, -.5f, -.5f, 0.f, -1.f, 0.f,
+            -.3f, -.3f, .3f, 0.f, -1.f, 0.f,
+            .3f, -.3f, .3f, 0.f, -1.f, 0.f,
+            -.3f, -.3f, -.3f, 0.f, -1.f, 0.f,
 
-            .5f, -.5f, .5f, 0.f, -1.f, 0.f,
-            -.5f, -.5f, -.5f, 0.f, -1.f, 0.f,
-            .5f, -.5f, -.5f, 0.f, -1.f, 0.f,
+            .3f, -.3f, .3f, 0.f, -1.f, 0.f,
+            -.3f, -.3f, -.3f, 0.f, -1.f, 0.f,
+            .3f, -.3f, -.3f, 0.f, -1.f, 0.f,
 
             // 左面
-            -.5f, -.5f, .5f, -1.f, 0.f, 0.f,
-            -.5f, .5f, .5f, -1.f, 0.f, 0.f,
-            -.5f, -.5f, -.5f, -1.f, 0.f, 0.f,
+            -.3f, -.3f, .3f, -1.f, 0.f, 0.f,
+            -.3f, .3f, .3f, -1.f, 0.f, 0.f,
+            -.3f, -.3f, -.3f, -1.f, 0.f, 0.f,
 
-            -.5f, .5f, .5f, -1.f, 0.f, 0.f,
-            -.5f, -.5f, -.5f, -1.f, 0.f, 0.f,
-            -.5f, .5f, -.5f, -1.f, 0.f, 0.f,
+            -.3f, .3f, .3f, -1.f, 0.f, 0.f,
+            -.3f, -.3f, -.3f, -1.f, 0.f, 0.f,
+            -.3f, .3f, -.3f, -1.f, 0.f, 0.f,
 
             // 右面
-            .5f, -.5f, .5f, 1.f, 0.f, 0.f,
-            .5f, .5f, .5f, 1.f, 0.f, 0.f,
-            .5f, -.5f, -.5f, 1.f, 0.f, 0.f,
+            .3f, -.3f, .3f, 1.f, 0.f, 0.f,
+            .3f, .3f, .3f, 1.f, 0.f, 0.f,
+            .3f, -.3f, -.3f, 1.f, 0.f, 0.f,
 
-            .5f, .5f, .5f, 1.f, 0.f, 0.f,
-            .5f, -.5f, -.5f, 1.f, 0.f, 0.f,
-            .5f, .5f, -.5f, 1.f, 0.f, 0.f,
+            .3f, .3f, .3f, 1.f, 0.f, 0.f,
+            .3f, -.3f, -.3f, 1.f, 0.f, 0.f,
+            .3f, .3f, -.3f, 1.f, 0.f, 0.f,
     };
     private FloatBuffer bPosWithN;
 
     // 点光源的位置
-    private final float[] sLight = new float[]{7.f, 7.f, -7.f};
+    private final float[] sLight = new float[]{5.f, 6.f, -4.f, 1.f};
 
     private float[] mLightMatrix = new float[16];
 
     //  眼睛位置
-    private final float[] sEye = new float[]{7.f, -7.f, 7.f};
+    private final float[] sEye = new float[]{6.f, 6.f, 7.f, 1.f};
 
     private float[] mEyeMatrix = new float[16];
 
     private int mShadowProgramObject;
     private int vShadowPosition;
-    private int vShadowTexcoord;
     private int uShadowTexture;
+    private int uEyeMatrix;
+    private int uLightMatrix;
 
     private FloatBuffer bPos;
     private final float[] sPos = {
-            -1.f, -1.f, -1.f,      // 左上角
-            -1.f, 1.f, -1.f,    // 左下角
-            1.f, -1.f, -1.f,        // 右上角
-            1.f, -1.f, 1f       // 右下角
+            -1.f, -.3f, 1.f,
+            1.f, -.3f, 1.f,
+            -1.f, -.3f, -1.f,
+
+            1.f, -.3f, 1.f,
+            -1.f, -.3f, -1.f,
+            1.f, -.3f, -1.f,
     };
 
-    // todo 由于安卓纹理坐标是左上角是原点、FBO纹理坐标的左下角是原点
-    private FloatBuffer bCoord;
-    private final float[] sCoord = {
-            0f, 1f,             // 左上角
-            0f, 0f,              // 左下角
-            1f, 1f,              // 右上角
-            1f, 0f              // 右下角
-    };
+    private int mLightProgramObject;
+
+    private int vLightPosition;
+    private int vLightNormal;
+    private int uLightEyeMatrix;
+    private int uObjectColor;
+    private int uLightColor;
+    private int uLightDir;
+    private int uEyeLocal;
+
+    // 物体颜色
+    private float[] sObjectColor = new float[]{1.f, 0.f, 0.f, 1.f};
+    private FloatBuffer bObjectColor;
+
+    // 光颜色
+    private float[] sLightColor = new float[]{1.f, 1.f, 1.f, 1.f};
+    private FloatBuffer bLightColor;
+
+    // 光的方向
+    private FloatBuffer bLightDir;
+
+    // 眼镜的位置
+    private FloatBuffer bEyeLocal;
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         bPosWithN = CommonUtils.fToB(sPosWithN);
         bPos = CommonUtils.fToB(sPos);
-        bCoord = CommonUtils.fToB(sCoord);
+
+        bObjectColor = CommonUtils.fToB(sObjectColor);
+        bLightColor = CommonUtils.fToB(sLightColor);
+        bLightDir = CommonUtils.fToB(sLight);
+        bEyeLocal = CommonUtils.fToB(sEye);
 
         // 仅仅为了获得深度纹理
         mProgramObjectDepth = CommonUtils.createProgram(Application.getInstance(), R.raw.depth_frag, R.raw.depth_vert);
         vDepPosition = GLES30.glGetAttribLocation(mProgramObjectDepth, "vPosition");
         uDepMatrix = GLES30.glGetUniformLocation(mProgramObjectDepth, "uMatrix");
 
-        // 其实就是纹理贴图
+        // 通过深度纹理，从光的角度判断存在平点面的深度是否比深度纹理内的深度高，如果比如深度
+        // 不比深度纹理记录的高度高，说明被遮盖，处于阴影之中
         mShadowProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.shadow_frag, R.raw.shadow_vert);
         vShadowPosition = GLES30.glGetAttribLocation(mShadowProgramObject, "vPosition");
-        vShadowTexcoord = GLES30.glGetAttribLocation(mShadowProgramObject, "vTexcoord");
-        uShadowTexture = GLES30.glGetUniformLocation(mShadowProgramObject, "uTexture");
+        uShadowTexture = GLES30.glGetUniformLocation(mShadowProgramObject, "uDepthTexture");
+        uEyeMatrix = GLES30.glGetUniformLocation(mShadowProgramObject, "uEyeMatrix");
+        uLightMatrix = GLES30.glGetUniformLocation(mShadowProgramObject, "uLightMatrix");
+
+        // 画光照的物体
+        mLightProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.light_frag, R.raw.light_vert);
+        vLightPosition = GLES30.glGetAttribLocation(mLightProgramObject, "vPosition");
+        vLightNormal = GLES30.glGetAttribLocation(mLightProgramObject, "vNormal");
+        uLightEyeMatrix = GLES30.glGetUniformLocation(mLightProgramObject, "uMVPMatrix");
+        uObjectColor = GLES30.glGetUniformLocation(mLightProgramObject, "uObjectColor");
+        uLightColor = GLES30.glGetUniformLocation(mLightProgramObject, "uLightColor");
+        uLightDir = GLES30.glGetUniformLocation(mLightProgramObject, "uLightDir");
+        uEyeLocal = GLES30.glGetUniformLocation(mLightProgramObject, "uEyeLocal");
     }
 
     @Override
@@ -199,6 +234,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
         GLES30.glClearColor(1.f, 1.f, 1.f, 1.f);
         GLES30.glUseProgram(mProgramObjectDepth);
+        bPosWithN.position(0);
         GLES30.glVertexAttribPointer(vDepPosition, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
         GLES30.glEnableVertexAttribArray(vDepPosition);
         GLES30.glUniformMatrix4fv(uDepMatrix, 1, false, mLightMatrix, 0);
@@ -213,9 +249,24 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glUseProgram(mShadowProgramObject);
         GLES30.glVertexAttribPointer(vShadowPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(vShadowPosition);
-        GLES30.glVertexAttribPointer(vShadowTexcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
-        GLES30.glEnableVertexAttribArray(vShadowTexcoord);
+        GLES30.glUniformMatrix4fv(uLightMatrix, 1, false, mLightMatrix, 0);
+        GLES30.glUniformMatrix4fv(uEyeMatrix, 1, false, mEyeMatrix, 0);
         GLES30.glUniform1i(uShadowTexture, 1);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6);
+
+        // 画带光的物体
+        GLES30.glUseProgram(mLightProgramObject);
+        bPosWithN.position(0);
+        GLES30.glVertexAttribPointer(vLightPosition, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
+        GLES30.glEnableVertexAttribArray(vLightPosition);
+        bPosWithN.position(3);
+        GLES30.glVertexAttribPointer(vLightNormal, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
+        GLES30.glEnableVertexAttribArray(vLightNormal);
+        GLES30.glUniformMatrix4fv(uLightEyeMatrix, 1, false, mEyeMatrix, 0);
+        GLES30.glUniform4fv(uObjectColor, 1, bObjectColor);
+        GLES30.glUniform4fv(uLightColor, 1, bLightColor);
+        GLES30.glUniform4fv(uLightDir, 1, bLightDir);
+        GLES30.glUniform4fv(uEyeLocal, 1, bEyeLocal);
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 36);
     }
 }
