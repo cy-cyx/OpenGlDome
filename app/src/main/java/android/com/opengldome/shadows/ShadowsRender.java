@@ -95,17 +95,17 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
 
     private float[] mEyeMatrix = new float[16];
 
-    private int mFBOProgramObject;
-    private int vFBOPosition;
-    private int vFBOTexcoord;
-    private int uFBOTexture;
+    private int mShadowProgramObject;
+    private int vShadowPosition;
+    private int vShadowTexcoord;
+    private int uShadowTexture;
 
     private FloatBuffer bPos;
     private final float[] sPos = {
-            -1.0f, 1.0f, 0f,      // 左上角
-            -1.0f, -1.0f, 0f,    // 左下角
-            1.0f, 1.0f, 0f,        // 右上角
-            1.0f, -1.0f, 0f       // 右下角
+            -1.f, -1.f, -1.f,      // 左上角
+            -1.f, 1.f, -1.f,    // 左下角
+            1.f, -1.f, -1.f,        // 右上角
+            1.f, -1.f, 1f       // 右下角
     };
 
     // todo 由于安卓纹理坐标是左上角是原点、FBO纹理坐标的左下角是原点
@@ -123,15 +123,16 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         bPos = CommonUtils.fToB(sPos);
         bCoord = CommonUtils.fToB(sCoord);
 
+        // 仅仅为了获得深度纹理
         mProgramObjectDepth = CommonUtils.createProgram(Application.getInstance(), R.raw.depth_frag, R.raw.depth_vert);
         vDepPosition = GLES30.glGetAttribLocation(mProgramObjectDepth, "vPosition");
         uDepMatrix = GLES30.glGetUniformLocation(mProgramObjectDepth, "uMatrix");
 
         // 其实就是纹理贴图
-        mFBOProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.texture_frag, R.raw.texture_vert);
-        vFBOPosition = GLES30.glGetAttribLocation(mFBOProgramObject, "vPosition");
-        vFBOTexcoord = GLES30.glGetAttribLocation(mFBOProgramObject, "vTexcoord");
-        uFBOTexture = GLES30.glGetUniformLocation(mFBOProgramObject, "uTexture");
+        mShadowProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.shadow_frag, R.raw.shadow_vert);
+        vShadowPosition = GLES30.glGetAttribLocation(mShadowProgramObject, "vPosition");
+        vShadowTexcoord = GLES30.glGetAttribLocation(mShadowProgramObject, "vTexcoord");
+        uShadowTexture = GLES30.glGetUniformLocation(mShadowProgramObject, "uTexture");
     }
 
     @Override
@@ -143,7 +144,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         // 光的mvp矩阵
         float[] tempMatrix = new float[16];
         float[] tempMatrix1 = new float[16];
-        Matrix.frustumM(tempMatrix, 0, -ratio, ratio, -1, 1, 4f, 20f);
+        Matrix.frustumM(tempMatrix, 0, -1, 1, -1, 1, 4f, 20f);
         //设置相机位置
         Matrix.setLookAtM(tempMatrix1, 0, sLight[0], sLight[1], sLight[2], 0f, 0f, 0f, 0f, 1f, 0f);
         //计算变换矩阵
@@ -168,7 +169,7 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_FUNC, GLES30.GL_LEQUAL);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_COMPARE_MODE, GLES30.GL_COMPARE_REF_TO_TEXTURE);
-        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_DEPTH_COMPONENT, width, height, 0, GLES30.GL_DEPTH_COMPONENT, GLES30.GL_UNSIGNED_SHORT, null);
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_DEPTH_COMPONENT, 1024, 1024, 0, GLES30.GL_DEPTH_COMPONENT, GLES30.GL_UNSIGNED_SHORT, null);
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
 
         int[] frameBuffers = new int[1];
@@ -182,12 +183,11 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
 
         if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE)
             throw new RuntimeException("缓冲区不完整");
-        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES30.glViewport(0, 0, mWidth, mHeight);
+        GLES30.glViewport(0, 0, 1024, 1024);
 
         GLES30.glEnable(GLES30.GL_TEXTURE_2D);
         GLES30.glEnable(GLES30.GL_DEPTH_TEST);
@@ -205,15 +205,17 @@ public class ShadowsRender implements GLSurfaceView.Renderer {
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 36);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
 
-        // 再画到屏幕上
+        GLES30.glViewport(0, 0, mWidth, mHeight);
+
+        // 画阴影
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
         GLES30.glClear(GLES30.GL_DEPTH_BUFFER_BIT);
-        GLES30.glUseProgram(mFBOProgramObject);
-        GLES30.glVertexAttribPointer(vFBOPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
-        GLES30.glEnableVertexAttribArray(vFBOPosition);
-        GLES30.glVertexAttribPointer(vFBOTexcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
-        GLES30.glEnableVertexAttribArray(vFBOTexcoord);
-        GLES30.glUniform1i(uFBOTexture, 1);
+        GLES30.glUseProgram(mShadowProgramObject);
+        GLES30.glVertexAttribPointer(vShadowPosition, 3, GLES30.GL_FLOAT, false, 0, bPos);
+        GLES30.glEnableVertexAttribArray(vShadowPosition);
+        GLES30.glVertexAttribPointer(vShadowTexcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
+        GLES30.glEnableVertexAttribArray(vShadowTexcoord);
+        GLES30.glUniform1i(uShadowTexture, 1);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
     }
 }
