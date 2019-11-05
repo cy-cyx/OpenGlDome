@@ -129,15 +129,6 @@ public class LightRender implements GLSurfaceView.Renderer {
         uLightColor = GLES30.glGetUniformLocation(mProgramObject, "uLightColor");
         uLightDir = GLES30.glGetUniformLocation(mProgramObject, "uLightDir");
         uEyeLocal = GLES30.glGetUniformLocation(mProgramObject, "uEyeLocal");
-
-        // 点
-        GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
-        GLES30.glEnableVertexAttribArray(vPosition);
-
-        // 法线
-        bPosWithN.position(3);
-        GLES30.glVertexAttribPointer(vNormal, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
-        GLES30.glEnableVertexAttribArray(vNormal);
     }
 
     @Override
@@ -160,6 +151,16 @@ public class LightRender implements GLSurfaceView.Renderer {
         GLES30.glClearColor(0, .5f, 0, 1);
 
         GLES30.glUseProgram(mProgramObject);
+
+        // 点
+        bPosWithN.position(0);
+        GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
+        GLES30.glEnableVertexAttribArray(vPosition);
+
+        // 法线
+        bPosWithN.position(3);
+        GLES30.glVertexAttribPointer(vNormal, 3, GLES30.GL_FLOAT, false, 8 * 3, bPosWithN);
+        GLES30.glEnableVertexAttribArray(vNormal);
 
         initMvpMatrix();
         GLES30.glUniformMatrix4fv(uMVPMatrix, 1, false, mvpMatrix, 0);
