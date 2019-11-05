@@ -19,22 +19,23 @@ void main() {
     coord = coord * .5f + .5f;
 
     // 1 代表不在阴影范围之内 0 代表在阴影范围之内
-    float f = texture(uDepthTexture, coord);
+//        float f = texture(uDepthTexture, coord);
 
     // PCF 优化
-//    f = 0.f;
-//    float pixelSixe = 0.02f;
-//
-//    float x, y;
-//    for (x = -1.0;x <= 1.0;x += 1.0){
-//        for (f = -1.0; y <= 1.0;y += 1.0){
-//            vec3 offset = vec3(x * pixelSixe, y * pixelSixe, 0);
-//            f += texture(uDepthTexture, coord + offset);
-//        }
-//    }
-//
-//    // 除于9
-//    f /= 9.f;
-    
+    float f = 0.f;
+    float pixelSixe = 0.002f;
+
+    float x, y;
+    for (x = -1.0;x <= 1.0;x += 1.0){
+        for (y = -1.0; y <= 1.0;y += 1.0){
+            vec3 offset = vec3(x * pixelSixe, y * pixelSixe, 0);
+            f += texture(uDepthTexture, coord + offset);
+        }
+    }
+
+    // 除于9
+    f /= 9.f;
+
     frag_Color = color * f;
+
 }
