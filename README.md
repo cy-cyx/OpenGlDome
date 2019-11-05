@@ -38,6 +38,8 @@
 
 阴影部分使用PCF优化，模糊过渡
 
+![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191105114256.png)
+
 **utils文件下**
 
 通用工具
