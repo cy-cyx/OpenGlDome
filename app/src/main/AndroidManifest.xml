@@ -25,6 +25,7 @@
         <activity android:name=".blend.BlendActivity" />
         <activity android:name=".shadows.ShadowsActivity" />
         <activity android:name=".texture.TextureActivity" />
+        <activity android:name=".obj.ObjActivity" />
     </application>
 
 </manifest>
