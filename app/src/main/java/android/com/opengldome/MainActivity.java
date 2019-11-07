@@ -1,5 +1,6 @@
 package android.com.opengldome;
 
+import android.app.ActivityManager;
 import android.com.opengldome.blend.BlendActivity;
 import android.com.opengldome.fbo.FBOActivity;
 import android.com.opengldome.light.LightActivity;
@@ -7,13 +8,17 @@ import android.com.opengldome.mvp.MVPActivity;
 import android.com.opengldome.obj.ObjActivity;
 import android.com.opengldome.shadows.ShadowsActivity;
 import android.com.opengldome.texture.TextureActivity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ConfigurationInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,6 +45,25 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(new MyAdapter());
         ViewGroup.LayoutParams vl = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setContentView(mRecyclerView, vl);
+
+        checkSupportGLES30();
+    }
+
+    private void checkSupportGLES30() {
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+        boolean supportGlES30 = configurationInfo.reqGlEsVersion >= 0x30000;
+        if (!supportGlES30) {
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setMessage("该设备不支持opengles 3.0")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            MainActivity.this.finish();
+                        }
+                    }).create();
+            dialog.show();
+        }
     }
 
     private class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
