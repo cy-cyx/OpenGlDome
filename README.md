@@ -40,6 +40,14 @@
 
 ![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191105114256.png)
 
+**7、用obj文件显示模型**
+
+1、解obj文件数据
+
+2、按照点、纹理、法线信息绘制模型
+
+3、利用法线加上光照 （法线贴图）
+
 **utils文件下**
 
 通用工具

@@ -28,7 +28,7 @@ void main() {
     vec4 normal = normalize(vert_normal);
     vec4 lightdir = normalize(uLightDir);
     float diff = max(dot(normal, lightdir), 0.0f);//负数没有意义
-    vec4 diffusColor = diff * uLightColor;
+    vec4 diffusColor = diff * uObjectColor;
 
     // 镜面高光（Specular）  就是反射光和眼睛成的比例
     float specularStrength = 0.5f;

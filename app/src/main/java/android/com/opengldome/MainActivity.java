@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
             ShadowsActivity.class, TextureActivity.class, ObjActivity.class};
     private String[] names = new String[]{"帧缓冲区",
             "MVP矩阵", "冯氏光照模型(平行光)", "混合模式",
-            "阴影（深度纹理）", "纹理贴图", "obj3D模型"};
+            "阴影（深度纹理）", "纹理贴图", "obj3D模型（法线贴图）"};
 
     private RecyclerView mRecyclerView;
 
