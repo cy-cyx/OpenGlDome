@@ -2,6 +2,7 @@ package android.com.opengldome.obj;
 
 import android.com.opengldome.Application;
 import android.com.opengldome.R;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -13,10 +14,14 @@ import java.util.ArrayList;
  */
 public class ObjDecodeTask implements Runnable {
 
-    float maxUnit = 0; // 找piont点最大值，正负中的最大，用于归一
+    private float maxUnit = 0; // 找piont点最大值，正负中的最大，用于归一
+
+    private IObjDecodeTaskListen iObjDecodeTaskListen;
 
     @Override
     public void run() {
+        long startTime = System.currentTimeMillis();
+
         InputStream is = null;
         ArrayList<Float> points = new ArrayList<>();
         ArrayList<Float> realPoints = new ArrayList<>();  // 点
@@ -28,7 +33,7 @@ public class ObjDecodeTask implements Runnable {
         ArrayList<Float> result = new ArrayList<>(); // 放点1/1/1 纹理3/3 法线2/2/2
 
         try {
-            is = Application.getInstance().getResources().openRawResource(R.raw.dog);
+            is = Application.getInstance().getResources().openRawResource(R.raw.dog_obj);
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
 
@@ -76,11 +81,11 @@ public class ObjDecodeTask implements Runnable {
                     int coord = Integer.valueOf(part[1]) - 1;
                     result.add(realCoord.get(coord * 3));
                     result.add(realCoord.get(coord * 3 + 1));
-
-                    int normal = Integer.valueOf(part[2]) - 1;
-                    result.add(realNormal.get(normal * 3));
-                    result.add(realNormal.get(normal * 3 + 1));
-                    result.add(realNormal.get(normal * 3 + 2));
+//
+//                    int normal = Integer.valueOf(part[2]) - 1;
+//                    result.add(realNormal.get(normal * 3));
+//                    result.add(realNormal.get(normal * 3 + 1));
+//                    result.add(realNormal.get(normal * 3 + 2));
 
                     // 第二个点
                     part = split[2 + i].split("/");
@@ -93,11 +98,11 @@ public class ObjDecodeTask implements Runnable {
                     coord = Integer.valueOf(part[1]) - 1;
                     result.add(realCoord.get(coord * 3));
                     result.add(realCoord.get(coord * 3 + 1));
-
-                    normal = Integer.valueOf(part[2]) - 1;
-                    result.add(realNormal.get(normal * 3));
-                    result.add(realNormal.get(normal * 3 + 1));
-                    result.add(realNormal.get(normal * 3 + 2));
+//
+//                    normal = Integer.valueOf(part[2]) - 1;
+//                    result.add(realNormal.get(normal * 3));
+//                    result.add(realNormal.get(normal * 3 + 1));
+//                    result.add(realNormal.get(normal * 3 + 2));
 
                     // 第三个点
                     part = split[3 + i].split("/");
@@ -110,18 +115,30 @@ public class ObjDecodeTask implements Runnable {
                     coord = Integer.valueOf(part[1]) - 1;
                     result.add(realCoord.get(coord * 3));
                     result.add(realCoord.get(coord * 3 + 1));
-
-                    normal = Integer.valueOf(part[2]) - 1;
-                    result.add(realNormal.get(normal * 3));
-                    result.add(realNormal.get(normal * 3 + 1));
-                    result.add(realNormal.get(normal * 3 + 2));
+//
+//                    normal = Integer.valueOf(part[2]) - 1;
+//                    result.add(realNormal.get(normal * 3));
+//                    result.add(realNormal.get(normal * 3 + 1));
+//                    result.add(realNormal.get(normal * 3 + 2));
                 }
             }
 
             // 转成数组
+            int size = result.size();
+            float[] realResult = new float[size];
+            for (int i = 0; i < size; i++) {
+                realResult[i] = result.get(i);
+            }
+
+            if (iObjDecodeTaskListen != null)
+                iObjDecodeTaskListen.onCallBack(realResult, true);
+
+            Log.e("xx", "run: 耗时：" + (System.currentTimeMillis() - startTime));
 
         } catch (Exception e) {
             e.printStackTrace();
+            if (iObjDecodeTaskListen != null)
+                iObjDecodeTaskListen.onCallBack(null, false);
         }
     }
 
@@ -134,5 +151,13 @@ public class ObjDecodeTask implements Runnable {
             maxUnit = abs;
         }
         return point;
+    }
+
+    public void setObjDecodeTaskListen(IObjDecodeTaskListen listen) {
+        this.iObjDecodeTaskListen = listen;
+    }
+
+    public interface IObjDecodeTaskListen {
+        public void onCallBack(float[] result, boolean success);
     }
 }
