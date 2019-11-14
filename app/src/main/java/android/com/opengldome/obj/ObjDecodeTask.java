@@ -62,6 +62,13 @@ public class ObjDecodeTask implements Runnable {
                 realPoints.add(f / maxUnit);
             }
 
+            // 纹理原点矫正(纹理原点左上角、obj纹理坐标左下角)  x.y.w 中 1 - y 即可翻转
+            int size = realCoord.size();
+            for (int i = 0; i < size / 3; i++) {
+                Float aFloat = realCoord.get(1 + 3 * i);
+                realCoord.set(1 + 3 * i, Math.abs(1 - aFloat));
+            }
+
             // 将点信息整理在一个数值里 注意obj中f(面)不止只有3个点
             for (String flat : flats) {
                 String[] split = flat.split("[ ]+");
@@ -124,7 +131,7 @@ public class ObjDecodeTask implements Runnable {
             }
 
             // 转成数组
-            int size = result.size();
+            size = result.size();
             float[] realResult = new float[size];
             for (int i = 0; i < size; i++) {
                 realResult[i] = result.get(i);

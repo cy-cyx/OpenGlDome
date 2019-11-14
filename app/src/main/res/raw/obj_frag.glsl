@@ -2,8 +2,12 @@
 
 precision highp float;
 
-out vec4 vert_color;
+in vec4 vert_coord;
+
+out vec4 frag_Color;
+
+uniform sampler2D uTexture;
 
 void main() {
-    vert_color = vec4(.5f, .1f, .1f, .5f);
+    frag_Color = texture(uTexture, vert_coord.xy);
 }

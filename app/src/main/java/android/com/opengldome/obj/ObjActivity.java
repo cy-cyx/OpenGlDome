@@ -51,7 +51,6 @@ public class ObjActivity extends AppCompatActivity {
         ObjRender objRender = new ObjRender();
         objRender.setData(data);
         mGlSurfaceView.setRenderer(objRender);
-        mGlSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY);
         setContentView(mGlSurfaceView);
     }
 
