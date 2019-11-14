@@ -23,12 +23,24 @@ public class ObjRender implements GLSurfaceView.Renderer {
     private int uMatrix;
     private int vCoord;
     private int uTexture;
+    private int vNormal;
+    private int uLightColor;
+    private int uLightDir;
+    private int uEyeLocal;
 
     private float[] fData; // 点+纹理+法线
     private FloatBuffer bData;
 
     // 眼睛的位置
     private float[] sEyeLocal = new float[]{-0.f, -6.f, 1.f, 1.f};
+
+    // 光颜色
+    private float[] sLightColor = new float[]{1.f, 1.f, 1.f, 1.f};
+    private FloatBuffer bLightColor;
+
+    // 光的方向
+    private float[] sLightDir = new float[]{-0.f, -6.f, 1.f, 1.f};
+    private FloatBuffer bLightDir;
 
     private float[] mvpMatrix = new float[16];
 
@@ -41,12 +53,18 @@ public class ObjRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         bData = CommonUtils.fToB(fData);
+        bLightColor = CommonUtils.fToB(sLightColor);
+        bLightDir = CommonUtils.fToB(sLightDir);
 
         mProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.obj_frag, R.raw.obj_vert);
         vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
+        vCoord = GLES30.glGetAttribLocation(mProgramObject, "vCoord");
+        vNormal = GLES30.glGetAttribLocation(mProgramObject, "vNormal");
         uMatrix = GLES30.glGetUniformLocation(mProgramObject, "uMatrix");
         uTexture = GLES30.glGetUniformLocation(mProgramObject, "uTexture");
-        vCoord = GLES30.glGetAttribLocation(mProgramObject, "vCoord");
+        uLightColor = GLES30.glGetUniformLocation(mProgramObject, "uLightColor");
+        uLightDir = GLES30.glGetUniformLocation(mProgramObject, "uLightDir");
+        uEyeLocal = GLES30.glGetUniformLocation(mProgramObject, "uEyeLocal");
     }
 
     @Override
@@ -70,20 +88,33 @@ public class ObjRender implements GLSurfaceView.Renderer {
         GLES30.glUseProgram(mProgramObject);
         bData.position(0);
         // 偏移 一个float 为 4个字节 偏移5个
-        GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 4 * 5, bData);
+        GLES30.glVertexAttribPointer(vPosition, 3, GLES30.GL_FLOAT, false, 4 * 8, bData);
         GLES30.glEnableVertexAttribArray(vPosition);
 
         bData.position(3);
         // 偏移 一个float 为 4个字节 偏移5个
-        GLES30.glVertexAttribPointer(vCoord, 2, GLES30.GL_FLOAT, false, 4 * 5, bData);
+        GLES30.glVertexAttribPointer(vCoord, 2, GLES30.GL_FLOAT, false, 4 * 8, bData);
         GLES30.glEnableVertexAttribArray(vCoord);
+
+        bData.position(5);
+        // 偏移 一个float 为 4个字节 偏移5个
+        GLES30.glVertexAttribPointer(vNormal, 2, GLES30.GL_FLOAT, false, 4 * 8, bData);
+        GLES30.glEnableVertexAttribArray(vNormal);
 
         GLES30.glUniform1i(uTexture, 1);
 
         upDataEye();
         initMvpMatrix();
         GLES30.glUniformMatrix4fv(uMatrix, 1, false, mvpMatrix, 0);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, fData.length / 5 * 3);
+
+        // 环境光颜色
+        GLES30.glUniform4fv(uLightColor, 1, bLightColor);
+        // 光的方向（平行光）
+        GLES30.glUniform4fv(uLightDir, 1, bLightDir);
+        // 眼睛的位置
+        GLES30.glUniform4fv(uEyeLocal, 1, CommonUtils.fToB(sEyeLocal));
+
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, fData.length / 8 * 3);
     }
 
     private void initMvpMatrix() {

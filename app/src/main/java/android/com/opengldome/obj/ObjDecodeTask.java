@@ -88,11 +88,11 @@ public class ObjDecodeTask implements Runnable {
                     int coord = Integer.valueOf(part[1]) - 1;
                     result.add(realCoord.get(coord * 3));
                     result.add(realCoord.get(coord * 3 + 1));
-//
-//                    int normal = Integer.valueOf(part[2]) - 1;
-//                    result.add(realNormal.get(normal * 3));
-//                    result.add(realNormal.get(normal * 3 + 1));
-//                    result.add(realNormal.get(normal * 3 + 2));
+
+                    int normal = Integer.valueOf(part[2]) - 1;
+                    result.add(realNormal.get(normal * 3));
+                    result.add(realNormal.get(normal * 3 + 1));
+                    result.add(realNormal.get(normal * 3 + 2));
 
                     // 第二个点
                     part = split[2 + i].split("/");
@@ -105,11 +105,11 @@ public class ObjDecodeTask implements Runnable {
                     coord = Integer.valueOf(part[1]) - 1;
                     result.add(realCoord.get(coord * 3));
                     result.add(realCoord.get(coord * 3 + 1));
-//
-//                    normal = Integer.valueOf(part[2]) - 1;
-//                    result.add(realNormal.get(normal * 3));
-//                    result.add(realNormal.get(normal * 3 + 1));
-//                    result.add(realNormal.get(normal * 3 + 2));
+
+                    normal = Integer.valueOf(part[2]) - 1;
+                    result.add(realNormal.get(normal * 3));
+                    result.add(realNormal.get(normal * 3 + 1));
+                    result.add(realNormal.get(normal * 3 + 2));
 
                     // 第三个点
                     part = split[3 + i].split("/");
@@ -122,11 +122,11 @@ public class ObjDecodeTask implements Runnable {
                     coord = Integer.valueOf(part[1]) - 1;
                     result.add(realCoord.get(coord * 3));
                     result.add(realCoord.get(coord * 3 + 1));
-//
-//                    normal = Integer.valueOf(part[2]) - 1;
-//                    result.add(realNormal.get(normal * 3));
-//                    result.add(realNormal.get(normal * 3 + 1));
-//                    result.add(realNormal.get(normal * 3 + 2));
+
+                    normal = Integer.valueOf(part[2]) - 1;
+                    result.add(realNormal.get(normal * 3));
+                    result.add(realNormal.get(normal * 3 + 1));
+                    result.add(realNormal.get(normal * 3 + 2));
                 }
             }
 
