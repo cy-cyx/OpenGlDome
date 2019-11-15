@@ -38,7 +38,7 @@
 
 阴影部分使用PCF优化，模糊过渡
 
-![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191105114256.png)
+![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191115103923.png)
 
 **7、用obj文件显示模型**
 
@@ -47,6 +47,8 @@
 2、按照点、纹理、法线信息绘制模型
 
 3、利用法线加上光照 （法线贴图）
+
+![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191115103942.png)
 
 **utils文件下**
 
