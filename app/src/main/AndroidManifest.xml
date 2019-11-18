@@ -26,6 +26,7 @@
         <activity android:name=".shadows.ShadowsActivity" />
         <activity android:name=".texture.TextureActivity" />
         <activity android:name=".obj.ObjActivity" />
+        <activity android:name=".particsystem.PSActivity" />
     </application>
 
 </manifest>

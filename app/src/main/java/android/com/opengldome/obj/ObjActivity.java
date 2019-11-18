@@ -8,8 +8,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
-
 public class ObjActivity extends AppCompatActivity {
 
     private GLSurfaceView mGlSurfaceView;
