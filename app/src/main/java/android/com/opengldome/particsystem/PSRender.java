@@ -21,9 +21,12 @@ public class PSRender implements GLSurfaceView.Renderer {
     private int mHeight;
 
     private int mProgramObject;
-    private int vPosition;
+    private int vStartPoint;
+    private int vEndPoint;
+    private int vContinuedTime;
+    private int uCurTime;
 
-    private int mPointSum = 100;
+    private int mPointSum = 500;
     private int mTime = 600;   // 设置持续时间  GlSurfaceView 大概刷新时间1S 60次 最长10s
     private int mCurTime = Integer.MAX_VALUE;
 
@@ -39,7 +42,10 @@ public class PSRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mProgramObject = CommonUtils.createProgram(Application.getInstance(), R.raw.partics_frag, R.raw.partics_vert);
-        vPosition = GLES30.glGetAttribLocation(mProgramObject, "vPosition");
+        vStartPoint = GLES30.glGetAttribLocation(mProgramObject, "vStartPoint");
+        vEndPoint = GLES30.glGetAttribLocation(mProgramObject, "vEndPoint");
+        vContinuedTime = GLES30.glGetAttribLocation(mProgramObject, "vContinuedTime");
+        uCurTime = GLES30.glGetUniformLocation(mProgramObject, "uCurTime");
     }
 
     @Override
@@ -58,13 +64,26 @@ public class PSRender implements GLSurfaceView.Renderer {
         // 更新数据
         upData();
         GLES30.glUseProgram(mProgramObject);
-        
+
+        GLES30.glVertexAttribPointer(vStartPoint, 3, GLES30.GL_FLOAT, false, 0, bPointStart);
+        GLES30.glEnableVertexAttribArray(vStartPoint);
+
+        GLES30.glVertexAttribPointer(vEndPoint, 3, GLES30.GL_FLOAT, false, 0, bPointEnd);
+        GLES30.glEnableVertexAttribArray(vEndPoint);
+
+
+        GLES30.glVertexAttribPointer(vContinuedTime, 1, GLES30.GL_FLOAT, false, 0, bPointTime);
+        GLES30.glEnableVertexAttribArray(vContinuedTime);
+
+        GLES30.glUniform1f(uCurTime, mCurTime);
+
+        GLES30.glDrawArrays(GLES30.GL_POINTS, 0, mPointSum);
     }
 
     public void upData() {
 
         if (mCurTime > mTime) {
-            mTime = 0;
+            mCurTime = 0;
             // 设置点开始区域（x -0.05~0.05 y -0.5~-0.4 z -0.05~0.05）
             for (int i = 0; i < mPointSum; i++) {
                 mPointStart[3 * i] = (float) (-0.05f + new Random().nextInt(1000) / 1000f * .1f);
@@ -86,6 +105,6 @@ public class PSRender implements GLSurfaceView.Renderer {
             }
             bPointTime = CommonUtils.fToB(mPointTime);
         }
-        mTime++;
+        mCurTime++;
     }
 }
