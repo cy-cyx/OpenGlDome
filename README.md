@@ -50,6 +50,13 @@
 
 ![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191115103942.png)
 
+**8、粒子系统**
+
+将一堆粒子起点、终点、持续时间 当作顶点属性输入 再传入当前时间作为变量
+在片元着色器进行计算（代替在代码中更新点位置）
+
+![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ%E5%9B%BE%E7%89%8720191119015745.png)
+
 **utils文件下**
 
 通用工具
