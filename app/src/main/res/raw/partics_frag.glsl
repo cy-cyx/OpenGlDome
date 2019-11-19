@@ -2,8 +2,17 @@
 
 precision highp float;
 
+in float vert_continueTime;
+
+uniform sampler2D uTexture;
+
+uniform float uCurTime;
+
 out vec4 frag_color;
 
 void main() {
-    frag_color = vec4(1.f, .0f, 1.f, .5f);
+    vec4 color = texture(uTexture, gl_PointCoord);
+    if (uCurTime <= vert_continueTime)
+    color.a = color.a * (1.f - uCurTime / vert_continueTime);
+    frag_color = color;
 }
