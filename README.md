@@ -42,11 +42,11 @@
 
 **7、用obj文件显示模型**
 
-1、解obj文件数据（测试素材下载网站 https://free3d.com/3d-models/obj）
+(1) 解obj文件数据（测试素材下载网站 https://free3d.com/3d-models/obj）
 
-2、按照点、纹理、法线信息绘制模型
+(2) 按照点、纹理、法线信息绘制模型
 
-3、利用法线加上光照 （法线贴图）
+(3) 利用法线加上光照 （法线贴图）
 
 ![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ图片20191115103942.png)
 
