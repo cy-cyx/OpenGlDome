@@ -58,7 +58,7 @@ public class PSRender implements GLSurfaceView.Renderer {
         // 更新数据
         upData();
         GLES30.glUseProgram(mProgramObject);
-        
+
     }
 
     public void upData() {
