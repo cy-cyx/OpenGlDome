@@ -20,7 +20,8 @@ public class TextGLActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         mGlTextureView = new GLTextureView(this);
-
+        mGlTextureView.setRenderer(new TextGLRender());
+        setContentView(mGlTextureView);
     }
 
     @Override

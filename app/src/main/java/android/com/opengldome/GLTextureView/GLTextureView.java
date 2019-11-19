@@ -37,16 +37,17 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-
+        mGlThread.surfaceCreated(width, height);
     }
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
+        mGlThread.onWindowResize(width, height);
     }
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        mGlThread.surfaceDestroyed();
         return false;
     }
 
@@ -57,15 +58,17 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        if (mDetached && mRenderer != null) {
+            mGlThread = new GlThread(mThisWeakRef);
+            mGlThread.start();
+            mDetached = false;
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        if (mGlThread != null)
-            mGlThread.requestExitAndWait();
-
+        mGlThread.requestExitAndWait();
         mDetached = true;
-
         super.onDetachedFromWindow();
     }
 
@@ -79,7 +82,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
         super.finalize();
     }
 
-    public void setRender(GLSurfaceView.Renderer render) {
+    public void setRenderer(GLSurfaceView.Renderer render) {
         mRenderer = render;
         mGlThread = new GlThread(mThisWeakRef);
         mGlThread.start();
@@ -87,13 +90,11 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
 
     public void onPause() {
-        if (mGlThread != null)
-            mGlThread.onPause();
+        mGlThread.onPause();
     }
 
     public void onResume() {
-        if (mGlThread != null)
-            mGlThread.onResume();
+        mGlThread.onResume();
     }
 
     /**
@@ -124,84 +125,130 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
             boolean createEglContext = false;
             boolean createEglSurface = false;
+            boolean sizeChanged = false;
+            int w = 0;
+            int h = 0;
 
-            // 外循环负责绘画
-            while (true) {
-                synchronized (sGlThreadManager) {
-                    // 内循环负责判断(需要同步)
-                    while (true) {
-                        // 退出
-                        if (mShouldExit) {
-                            return;
-                        }
+            try {
+                // 外循环负责绘画
 
-                        // 更新生命周期
-                        boolean pausing = false;
-                        if (mPaused != mRequestPaused) {
-                            pausing = mRequestPaused;
-                            mPaused = mRequestPaused;
-                            sGlThreadManager.notifyAll();
-                        }
-
-                        // 更新surface
-
-                        // lost surface
-                        if (!mHasSurface && !mWaitingForSurface) {
-                            if (mHaveEglSurface) {
-                                stopEglSurfaceLocked();
+                while (true) {
+                    synchronized (sGlThreadManager) {
+                        // 内循环负责判断(需要同步)
+                        while (true) {
+                            // 退出
+                            if (mShouldExit) {
+                                return;
                             }
-                            mWaitingForSurface = true;
-                            sGlThreadManager.notifyAll();
-                        }
 
-                        // acquired surface
-                        if (mHasSurface && mWaitingForSurface) {
-                            mWaitingForSurface = false;
-                            sGlThreadManager.notifyAll();
-                        }
+                            // 更新生命周期
+                            boolean pausing = false;
+                            if (mPaused != mRequestPaused) {
+                                pausing = mRequestPaused;
+                                mPaused = mRequestPaused;
+                                sGlThreadManager.notifyAll();
+                            }
 
+                            // 更新surface
 
-                        if (readyToDraw()) {
-
-                            // 先确认有没有EGLContext
-                            if (!mHaveEglContext) {
-                                try {
-                                    mEglHelper.start();
-                                } catch (RuntimeException t) {
-                                    throw t;
+                            // lost surface
+                            if (!mHasSurface && !mWaitingForSurface) {
+                                if (mHaveEglSurface) {
+                                    stopEglSurfaceLocked();
                                 }
-                                mHaveEglContext = true;
-                                createEglContext = true;
+                                mWaitingForSurface = true;
+                                sGlThreadManager.notifyAll();
                             }
 
-                            if (!mHaveEglSurface) {
-                                mHaveEglSurface = true;
-                                createEglSurface = true;
+                            // acquired surface
+                            if (mHasSurface && mWaitingForSurface) {
+                                mWaitingForSurface = false;
+                                sGlThreadManager.notifyAll();
                             }
 
-                            break;
+
+                            if (readyToDraw()) {
+
+                                // 先确认有没有EGLContext
+                                if (!mHaveEglContext) {
+                                    try {
+                                        mEglHelper.start();
+                                    } catch (RuntimeException t) {
+                                        throw t;
+                                    }
+                                    mHaveEglContext = true;
+                                    createEglContext = true;
+                                }
+
+                                if (!mHaveEglSurface) {
+                                    mHaveEglSurface = true;
+                                    createEglSurface = true;
+                                    sizeChanged = true;
+                                    w = mWidth;
+                                    h = mHeight;
+                                }
+
+                                // 判断是否需要重置size
+                                if (mHaveEglSurface && mSizeChanged) {
+                                    sizeChanged = true;
+                                    mSizeChanged = false;
+                                    w = mWidth;
+                                    h = mHeight;
+                                }
+
+                                break;
+                            }
+                            sGlThreadManager.wait();
                         }
-                        sGlThreadManager.wait();
                     }
-                }
 
-                if (createEglSurface) {
-                    mEglHelper.createSurface();
-                    createEglSurface = false;
-                }
+                    if (createEglSurface) {
+                        mEglHelper.createSurface();
+                        createEglSurface = false;
+                    }
 
-                if (createEglContext) {
+                    if (createEglContext) {
+                        GLTextureView view = mGLSurfaceViewWeakRef.get();
+                        view.mRenderer.onSurfaceCreated(null, null);
+                        createEglContext = false;
+                    }
+
+                    if (sizeChanged) {
+                        GLTextureView view = mGLSurfaceViewWeakRef.get();
+                        view.mRenderer.onSurfaceChanged(null, w, h);
+                        sizeChanged = false;
+                    }
+
                     GLTextureView view = mGLSurfaceViewWeakRef.get();
-                    view.mRenderer.onSurfaceCreated(null, null);
-                    createEglContext = false;
+                    view.mRenderer.onDrawFrame(null);
+                    mEglHelper.swap();
                 }
-
-
+            } finally {
+                synchronized (sGlThreadManager) {
+                    stopEglSurfaceLocked();
+                    stopEglContextLocked();
+                }
             }
         }
 
-        public void surfaceCreated() {
+        private void onWindowResize(int w, int h) {
             synchronized (sGlThreadManager) {
+                mWidth = w;
+                mHeight = h;
+
+                if (Thread.currentThread() == this) {
+                    return;
+                }
+
+                mSizeChanged = true;
+                sGlThreadManager.notifyAll();
+            }
+        }
+
+        private void surfaceCreated(int w, int h) {
+            synchronized (sGlThreadManager) {
+                mWidth = w;
+                mHeight = h;
                 mHasSurface = true;
                 sGlThreadManager.notifyAll();
                 while ((!mExited) && (mWaitingForSurface)) {
@@ -214,7 +261,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
             }
         }
 
-        public void surfaceDestroyed() {
+        private void surfaceDestroyed() {
             synchronized (sGlThreadManager) {
                 mHasSurface = false;
                 sGlThreadManager.notifyAll();
@@ -260,7 +307,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
         /**
          * 请求退出并需要等待
          */
-        public void requestExitAndWait() {
+        private void requestExitAndWait() {
 
             synchronized (sGlThreadManager) {
                 mShouldExit = true;
@@ -282,9 +329,19 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
             }
         }
 
-        private boolean readyToDraw() {
-            return mHasSurface && !mPaused;
+        private void stopEglContextLocked() {
+            if (mHaveEglContext) {
+                mEglHelper.finish();
+                mHaveEglContext = false;
+            }
         }
+
+        private boolean readyToDraw() {
+            return mHasSurface && !mPaused && (mWidth > 0) && (mHeight > 0);
+        }
+
+        private int mWidth;
+        private int mHeight;
 
         // 退出
         private boolean mShouldExit;
@@ -299,6 +356,8 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
         private boolean mHasSurface; // 是否有surface
         private boolean mWaitingForSurface; // 等待surface
+
+        private boolean mSizeChanged = true; // 注意添加surface也会调用
 
         private EglHelper mEglHelper;
         private WeakReference<GLTextureView> mGLSurfaceViewWeakRef;
@@ -355,16 +414,14 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
             mEglSurface = null;
         }
 
-        public void finish() {
+        private void finish() {
             if (mEglDisplay != null) {
-                EGL14.eglDestroyContext(mEglDisplay, mEglContext);
-                EGL14.eglDestroySurface(mEglDisplay, mEglSurface);
                 EGL14.eglTerminate(mEglDisplay);
                 mEglDisplay = null;
             }
         }
 
-        public boolean createSurface() {
+        private boolean createSurface() {
             destroySurfaceImp();
 
             // 创建surface
@@ -389,7 +446,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
             return true;
         }
 
-        public void destroySurface() {
+        private void destroySurface() {
             destroySurfaceImp();
         }
 
@@ -419,11 +476,15 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     private static class GLThreadManager {
 
-        public synchronized void threadExiting(GlThread thread) {
+        private synchronized void threadExiting(GlThread thread) {
             thread.mExited = true;
             notifyAll();
         }
 
+
+        public void releaseEglContextLocked(GlThread thread) {
+            notifyAll();
+        }
     }
 
     private static final GLThreadManager sGlThreadManager = new GLThreadManager();

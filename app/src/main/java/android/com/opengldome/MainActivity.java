@@ -1,6 +1,7 @@
 package android.com.opengldome;
 
 import android.app.ActivityManager;
+import android.com.opengldome.GLTextureView.TextGLActivity;
 import android.com.opengldome.blend.BlendActivity;
 import android.com.opengldome.fbo.FBOActivity;
 import android.com.opengldome.light.LightActivity;
@@ -29,11 +30,11 @@ public class MainActivity extends AppCompatActivity {
     private Class[] classes = new Class[]{FBOActivity.class,
             MVPActivity.class, LightActivity.class, BlendActivity.class,
             ShadowsActivity.class, TextureActivity.class, ObjActivity.class,
-            PSActivity.class};
+            PSActivity.class, TextGLActivity.class};
     private String[] names = new String[]{"帧缓冲区",
             "MVP矩阵", "冯氏光照模型(平行光)", "混合模式",
             "阴影（深度纹理）", "纹理贴图", "obj3D模型（法线贴图）",
-            "粒子系统"};
+            "粒子系统", "GLTextureView"};
 
     private RecyclerView mRecyclerView;
 
