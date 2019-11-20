@@ -1,4 +1,4 @@
-package android.com.opengldome.GLTextureView;
+package android.com.opengldome.gltextureview;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
@@ -333,6 +333,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
             if (mHaveEglContext) {
                 mEglHelper.finish();
                 mHaveEglContext = false;
+                sGlThreadManager.releaseEglContextLocked(this);
             }
         }
 
@@ -382,13 +383,14 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
             // 配置参数
             int[] configAttributes = {
-                    EGL14.EGL_BUFFER_SIZE, 32,
+                    EGL14.EGL_BUFFER_SIZE, 32,  // 颜色缓存区
                     EGL14.EGL_ALPHA_SIZE, 8,
                     EGL14.EGL_BLUE_SIZE, 8,
                     EGL14.EGL_GREEN_SIZE, 8,
                     EGL14.EGL_RED_SIZE, 8,
-                    EGL14.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-                    EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
+                    EGL14.EGL_DEPTH_SIZE, 16,  // 深度缓存区
+                    EGL14.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // 渲染布局格式
+                    EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,  // 渲染窗口
                     EGL14.EGL_NONE
             };
             int[] numConfigs = new int[1];
@@ -451,7 +453,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
         }
 
         // 刷新到屏幕
-        public int swap() {
+        private int swap() {
             if (!EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
                 return EGL14.eglGetError();
             }
@@ -482,7 +484,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
         }
 
 
-        public void releaseEglContextLocked(GlThread thread) {
+        private void releaseEglContextLocked(GlThread thread) {
             notifyAll();
         }
     }

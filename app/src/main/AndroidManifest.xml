@@ -27,7 +27,7 @@
         <activity android:name=".texture.TextureActivity" />
         <activity android:name=".obj.ObjActivity" />
         <activity android:name=".particsystem.PSActivity" />
-        <activity android:name=".GLTextureView.TextGLActivity" />
+        <activity android:name=".gltextureview.TextGLActivity" />
     </application>
 
 </manifest>

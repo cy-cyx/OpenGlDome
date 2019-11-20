@@ -57,6 +57,18 @@
 
 ![Image text](https://github.com/cy-cyx/OpenGlDome/blob/master/img/QQ%E5%9B%BE%E7%89%8720191119015745.png)
 
+**9、GLTextureView**
+
+仿照GlSurfaceView的写法，大体结构一致
+
+（1）主线程和gl线程之前，指令发出到执行需要等待（wait notify）
+
+（2）gl线程使用了嵌套循环写法，内循环加锁（在内循环中进行条件的判断 生命周期、surface） 在外循环执行渲染
+
+（3）EGLHelp中封装EGL环境构建所需要的所有逻辑
+
+（4）充分利用TextureView的作为一个View的生命流程
+
 **utils文件下**
 
 通用工具

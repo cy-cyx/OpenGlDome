@@ -1,4 +1,4 @@
-package android.com.opengldome.GLTextureView;
+package android.com.opengldome.gltextureview;
 
 import android.os.Bundle;
 

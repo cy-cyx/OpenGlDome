@@ -1,7 +1,7 @@
 package android.com.opengldome;
 
 import android.app.ActivityManager;
-import android.com.opengldome.GLTextureView.TextGLActivity;
+import android.com.opengldome.gltextureview.TextGLActivity;
 import android.com.opengldome.blend.BlendActivity;
 import android.com.opengldome.fbo.FBOActivity;
 import android.com.opengldome.light.LightActivity;
