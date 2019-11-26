@@ -30,6 +30,7 @@ public class BeautyActivity extends AppCompatActivity {
         {
             mGlSurfaceView = new GLSurfaceView(this);
             mGlSurfaceView.setEGLContextClientVersion(3);
+            mGlSurfaceView.setPreserveEGLContextOnPause(true);
             beautyRender = new BeautyRender();
             mGlSurfaceView.setRenderer(beautyRender);
             fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
