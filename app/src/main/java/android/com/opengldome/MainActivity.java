@@ -1,5 +1,6 @@
 package android.com.opengldome;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.com.opengldome.beauty.BeautyActivity;
 import android.com.opengldome.blend.BlendActivity;
@@ -11,6 +12,7 @@ import android.com.opengldome.obj.ObjActivity;
 import android.com.opengldome.particsystem.PSActivity;
 import android.com.opengldome.shadows.ShadowsActivity;
 import android.com.opengldome.texture.TextureActivity;
+import android.com.opengldome.utils.PermissionUtil;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -52,6 +55,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(mRecyclerView, vl);
 
         checkSupportGLES30();
+
+        PermissionUtil.requestRuntimePermissions(this, new String[]{Manifest.permission.CAMERA}, new PermissionUtil.IPermissionCallback() {
+            @Override
+            public void nextStep() {
+
+            }
+
+            @Override
+            public void cancel() {
+
+            }
+        });
     }
 
     private void checkSupportGLES30() {
@@ -69,6 +84,12 @@ public class MainActivity extends AppCompatActivity {
                     }).create();
             dialog.show();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        PermissionUtil.OnActivityResult(this, requestCode, resultCode, data);
     }
 
     private class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

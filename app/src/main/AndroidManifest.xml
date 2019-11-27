@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="android.com.opengldome">
 
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <application
         android:name=".Application"
         android:allowBackup="true"
