@@ -14,6 +14,7 @@ import android.com.opengldome.particsystem.PSActivity;
 import android.com.opengldome.shadows.ShadowsActivity;
 import android.com.opengldome.texture.TextureActivity;
 import android.com.opengldome.utils.PermissionUtil;
+import android.com.opengldome.utils.WHView;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,13 +51,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        FrameLayout frameLayout = new FrameLayout(this);
+        ViewGroup.LayoutParams vl = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        setContentView(frameLayout, vl);
+
+        WHView whView = new WHView(this);
+        whView.init(frameLayout);
+
         mRecyclerView = new RecyclerView(this);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(RecyclerView.VERTICAL);
         mRecyclerView.setLayoutManager(linearLayoutManager);
         mRecyclerView.setAdapter(new MyAdapter());
-        ViewGroup.LayoutParams vl = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        setContentView(mRecyclerView, vl);
+        FrameLayout.LayoutParams fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        frameLayout.addView(mRecyclerView, fl);
 
         checkSupportGLES30();
 

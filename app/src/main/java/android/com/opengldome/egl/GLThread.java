@@ -110,6 +110,7 @@ public class GLThread extends Thread {
     }
 
     private void finishAndRelease() {
+        eglHelp.destroySurface();
         eglHelp.finish();
         quitSafely();
     }
@@ -143,6 +144,7 @@ public class GLThread extends Thread {
                         SurfaceTexture surfaceTexture = (SurfaceTexture) msg.obj;
                         glThread.createSurfaceInner(surfaceTexture);
                     }
+                    break;
                 case MSG_SURFACE_CHANGED:
                     glThread = glThreadWeakReference.get();
                     if (glThread != null) {

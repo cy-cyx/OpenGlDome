@@ -21,10 +21,10 @@ import static android.opengl.EGL14.EGL_OPENGL_ES2_BIT;
  */
 public class EGLHelp {
 
-    EGLDisplay mEglDisplay;
-    EGLConfig mEglConfig;
-    EGLContext mEglContext;
-    EGLSurface mEglSurface;
+    private EGLDisplay mEglDisplay;
+    private EGLConfig mEglConfig;
+    private EGLContext mEglContext;
+    private EGLSurface mEglSurface;
 
     public void start() {
         // 创建display
@@ -63,6 +63,11 @@ public class EGLHelp {
         mEglContext = EGL14.eglCreateContext(mEglDisplay, configs[0], EGL14.EGL_NO_CONTEXT, contextAttribs, 0);
         if (mEglContext == EGL14.EGL_NO_CONTEXT) {
             throw new RuntimeException("eglCreateContext failed ：" +
+                    GLUtils.getEGLErrorString(EGL14.eglGetError()));
+        }
+
+        if (!EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, mEglContext)) {
+            throw new RuntimeException("eglMakeCurrent failed : " +
                     GLUtils.getEGLErrorString(EGL14.eglGetError()));
         }
 
@@ -107,10 +112,10 @@ public class EGLHelp {
     }
 
     private void destroySurfaceImp() {
-        if (mEglSurface != null && mEglSurface != EGL14.EGL_NO_SURFACE) {
+        if (mEglDisplay != null && mEglSurface != null && mEglSurface != EGL14.EGL_NO_SURFACE) {
             EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE,
                     EGL14.EGL_NO_SURFACE,
-                    EGL14.EGL_NO_CONTEXT);
+                    mEglContext);
             mEglSurface = null;
         }
     }

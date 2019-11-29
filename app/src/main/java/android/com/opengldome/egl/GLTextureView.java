@@ -17,6 +17,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     public GLTextureView(Context context) {
         super(context);
+        setSurfaceTextureListener(this);
     }
 
     public void setRender(GlRender glRender) {
@@ -39,6 +40,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         glThread.createSurface(surface);
+        glThread.surfaceChanged(width, height);
     }
 
     @Override
