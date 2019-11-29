@@ -3,9 +3,11 @@
 in vec4 vPosition;
 in vec2 vTexcoord;
 
+uniform mat4 uMatrix;
+
 out vec2 vert_texcoord;
 
 void main() {
-    gl_Position = vPosition;
+    gl_Position = uMatrix * vPosition;
     vert_texcoord = vTexcoord;
 }
