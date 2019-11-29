@@ -44,7 +44,7 @@ public class WHView extends View {
      *
      * @return
      */
-    public static float getViewHeight(Context context) {
+    public static float getViewHeight() {
         return sViewHeight;
     }
 

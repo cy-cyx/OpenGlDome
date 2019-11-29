@@ -30,8 +30,8 @@ public class GLFrameBuffer {
     }
 
     private void initFrameBuffer() {
-        GLES30.glGenTextures(4, textureArray, 0);
-        GLES30.glGenFramebuffers(4, frameBufferArray, 0);
+        GLES30.glGenTextures(sumFrameBuffer, textureArray, 0);
+        GLES30.glGenFramebuffers(sumFrameBuffer, frameBufferArray, 0);
         for (int index = 0; index < sumFrameBuffer; index++) {
             GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureArray[index]);
             GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA, width, height, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, null);
