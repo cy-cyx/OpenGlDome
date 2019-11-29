@@ -44,6 +44,8 @@ public class Camera2Render implements GLTextureView.GlRender {
     private void initOES() {
         oesTexture = CommonUtils.createTextureOES();
         oesSurfaceTexture = new SurfaceTexture(oesTexture);
+        // todo 这里设置Size会影响预览效果
+        oesSurfaceTexture.setDefaultBufferSize(5000, 5000);
         oesSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {

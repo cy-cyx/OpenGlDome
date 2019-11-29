@@ -47,6 +47,11 @@ public class CameraThread extends Thread {
 
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        try {
+            cameraManager.getCameraCharacteristics("1");
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setCameraConfig(CameraConfig cameraConfig) {
