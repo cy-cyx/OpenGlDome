@@ -22,20 +22,32 @@ import java.util.Arrays;
  * create by cy
  * time : 2019/11/29
  * version : 1.0
- * Features :
+ * Features : 该线程中管理着{@link android.graphics.Camera}
  */
 public class CameraThread extends Thread {
 
-    private static final int MSG_SURFACE_CREATE = 0;
-    public static final int MSG_OPEN_CAMERA = 1;
+    private CameraConfig cameraConfig;
+
+    private static final int MSG_SURFACE_CREATE = 0; // 预览GlSurfaceView的OES成功创建（正常只会调用一次）
+    public static final int MSG_PAUSE = 1;
+    public static final int MSG_RESUME = 2;
+    public static final int MSG_RELEASE = 3;
 
     private CameraManager cameraManager;
     private CameraThreadHandler cameraThreadHandler;
     private SurfaceTexture oesSurfaceTexture;
-    private CameraDevice cameraDevice;
+
+    private CameraDevice curCameraDevice;
+    private CameraCaptureSession curCameraCaptureSession;
+
+    private boolean inOnPause = false;
 
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+    }
+
+    public void setCameraConfig(CameraConfig cameraConfig) {
+        this.cameraConfig = cameraConfig;
     }
 
     @Override
@@ -63,17 +75,43 @@ public class CameraThread extends Thread {
 
     private void surfaceCreateInner(SurfaceTexture surfaceTexture) {
         oesSurfaceTexture = surfaceTexture;
-        openCameraInner();
+        if (!inOnPause)
+            openCameraInner();
+    }
+
+    private void onPauseInner() {
+        inOnPause = true;
+        if (curCameraDevice != null)
+            curCameraDevice.close();
+        curCameraDevice = null;
+        curCameraCaptureSession = null;
+    }
+
+    private void onResumeInner() {
+        if (inOnPause) {
+            openCameraInner();
+        }
+        inOnPause = false;
+    }
+
+    private void quitAndReleaseInner() {
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            looper.quitSafely();
+        }
     }
 
     @SuppressLint("MissingPermission")
     private void openCameraInner() {
         try {
-            cameraManager.openCamera("1", new CameraDevice.StateCallback() {
+            cameraManager.openCamera(cameraConfig.cameraId, new CameraDevice.StateCallback() {
                 @Override
                 public void onOpened(@NonNull CameraDevice camera) {
-                    cameraDevice = camera;
-                    startPreviewInner();
+                    if (!inOnPause) {
+                        curCameraDevice = camera;
+                        createCaptureSession();
+                    }
+
                 }
 
                 @Override
@@ -91,36 +129,21 @@ public class CameraThread extends Thread {
         }
     }
 
-    private void startPreviewInner() {
-        CaptureRequest.Builder previewRequestBuilder = null;
+    private void createCaptureSession() {
+        if (curCameraDevice == null) return;
         try {
-            previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-        previewRequestBuilder.addTarget(new Surface(oesSurfaceTexture));
-        try {
-            final CaptureRequest.Builder finalPreviewRequestBuilder = previewRequestBuilder;
-            cameraDevice.createCaptureSession(Arrays.<Surface>asList(new Surface(oesSurfaceTexture)), new CameraCaptureSession.StateCallback() {
+            curCameraDevice.createCaptureSession(Arrays.<Surface>asList(new Surface(oesSurfaceTexture)), new CameraCaptureSession.StateCallback() {
                 @Override
-                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    try {
-                        // 自动对焦
-                        finalPreviewRequestBuilder.set(CaptureRequest.BLACK_LEVEL_LOCK, false);
-                        finalPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                        // 打开闪光灯
-                        finalPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE);
-                        finalPreviewRequestBuilder.set(CaptureRequest.STATISTICS_LENS_SHADING_MAP_MODE, CaptureRequest.STATISTICS_LENS_SHADING_MAP_MODE_ON);
-                        // 显示预览
-                        CaptureRequest previewRequest = finalPreviewRequestBuilder.build();
-                        cameraCaptureSession.setRepeatingRequest(previewRequest, null, new Handler());
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
+                public void onConfigured(@NonNull CameraCaptureSession session) {
+                    if (!inOnPause) {
+                        curCameraCaptureSession = session;
+                        // 管道连接后默认打开预览
+                        openAndAdjustPreview();
                     }
                 }
 
                 @Override
-                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
 
                 }
             }, new Handler());
@@ -129,16 +152,45 @@ public class CameraThread extends Thread {
         }
     }
 
+    private void openAndAdjustPreview() {
+        if (!inOnPause && curCameraDevice != null && curCameraCaptureSession != null) {
+            try {
+                CaptureRequest.Builder previewRequestBuilder = curCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                previewRequestBuilder.addTarget(new Surface(oesSurfaceTexture));
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
+                curCameraCaptureSession.setRepeatingRequest(previewRequestBuilder.build(), null, new Handler());
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void surfaceCreate(SurfaceTexture surfaceTexture) {
         if (getHandler() != null)
             Message.obtain(getHandler(), MSG_SURFACE_CREATE, surfaceTexture).sendToTarget();
     }
 
+    public void onPause() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_PAUSE).sendToTarget();
+    }
+
+    public void onResume() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_RESUME).sendToTarget();
+    }
+
+    public void release() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_RELEASE).sendToTarget();
+    }
+
     private static class CameraThreadHandler extends Handler {
 
-        WeakReference<CameraThread> cameraThreadWeakReference;
+        private WeakReference<CameraThread> cameraThreadWeakReference;
 
-        public CameraThreadHandler(CameraThread cameraThread) {
+        private CameraThreadHandler(CameraThread cameraThread) {
             cameraThreadWeakReference = new WeakReference<>(cameraThread);
         }
 
@@ -153,10 +205,25 @@ public class CameraThread extends Thread {
                         cameraThread.surfaceCreateInner(surfaceTexture);
                     }
                     break;
-                case MSG_OPEN_CAMERA:
+                case MSG_PAUSE:
+                    cameraThread = cameraThreadWeakReference.get();
+                    if (cameraThread != null) {
+                        cameraThread.onPauseInner();
+                    }
+                    break;
+                case MSG_RESUME:
+                    cameraThread = cameraThreadWeakReference.get();
+                    if (cameraThread != null) {
+                        cameraThread.onResumeInner();
+                    }
+                    break;
+                case MSG_RELEASE:
+                    cameraThread = cameraThreadWeakReference.get();
+                    if (cameraThread != null) {
+                        cameraThread.quitAndReleaseInner();
+                    }
                     break;
             }
-
         }
     }
 }

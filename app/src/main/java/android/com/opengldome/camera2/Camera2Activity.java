@@ -23,17 +23,23 @@ public class Camera2Activity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initCamera();
         initListen();
         initView();
+    }
+
+    private void initCamera() {
+        CameraConfig cameraConfig = new CameraConfig();
+
+        cameraThread = new CameraThread(Camera2Activity.this);
+        cameraThread.setCameraConfig(cameraConfig);
+        cameraThread.start();
     }
 
     private void initListen() {
         camera2RenderCallBack = new Camera2Render.Camera2RenderCallBack() {
             @Override
             public void onEOSAvailable(SurfaceTexture surfaceTexture) {
-                // todo 外部纹理可用，可以在这里开发预览
-                cameraThread = new CameraThread(Camera2Activity.this);
-                cameraThread.start();
                 cameraThread.surfaceCreate(surfaceTexture);
             }
         };
@@ -50,11 +56,19 @@ public class Camera2Activity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        cameraThread.onPause();
         super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        cameraThread.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        cameraThread.release();
+        super.onDestroy();
     }
 }
