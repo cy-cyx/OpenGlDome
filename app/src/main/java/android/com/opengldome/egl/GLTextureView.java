@@ -8,7 +8,7 @@ import android.view.TextureView;
  * create by cy
  * time : 2019/11/28
  * version : 1.0
- * Features :
+ * Features : TextureView中维护着一条Gl线程
  */
 public class GLTextureView extends TextureView implements TextureView.SurfaceTextureListener {
 

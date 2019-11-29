@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference;
  * create by cy
  * time : 2019/11/28
  * version : 1.0
- * Features : 用获取相机数据，并矫正方向 
+ * Features : 用获取相机数据，并矫正方向
  */
 public class Camera2Render implements GLTextureView.GlRender {
 

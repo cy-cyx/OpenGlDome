@@ -12,7 +12,7 @@ import java.lang.ref.WeakReference;
  * create by cy
  * time : 2019/11/28
  * version : 1.0
- * Features :
+ * Features : Gl线程
  */
 public class GLThread extends Thread {
 

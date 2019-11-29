@@ -17,7 +17,7 @@ import static android.opengl.EGL14.EGL_OPENGL_ES2_BIT;
  * create by cy
  * time : 2019/11/28
  * version : 1.0
- * Features :
+ * Features : EGL环境构建需要的方法
  */
 public class EGLHelp {
 
