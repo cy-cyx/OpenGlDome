@@ -1,8 +1,10 @@
 package android.com.opengldome.camera2;
 
+import android.com.opengldome.camera2.view.ControlLayout;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,23 +19,19 @@ public class Camera2Activity extends AppCompatActivity {
 
     private CameraGLTextureView glTextureView;
     private Camera2Render camera2Render;
-    private Camera2Render.Camera2RenderCallBack camera2RenderCallBack;
     private CameraThread cameraThread;
+    private ControlLayout controlLayout;
+
+    private Camera2Render.Camera2RenderCallBack camera2RenderCallBack;
+    private ControlLayout.ControlLayoutCallback controlLayoutCallback;
+    private CameraThread.CameraThreadCallBack cameraThreadCallBack;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initCamera();
         initListen();
+        initCamera();
         initView();
-    }
-
-    private void initCamera() {
-        CameraConfig cameraConfig = new CameraConfig();
-
-        cameraThread = new CameraThread(Camera2Activity.this);
-        cameraThread.setCameraConfig(cameraConfig);
-        cameraThread.start();
     }
 
     private void initListen() {
@@ -43,15 +41,49 @@ public class Camera2Activity extends AppCompatActivity {
                 cameraThread.surfaceCreate(surfaceTexture);
             }
         };
+        controlLayoutCallback = new ControlLayout.ControlLayoutCallback() {
+            @Override
+            public void onSwitch() {
+                cameraThread.switchCamera();
+            }
+        };
+        cameraThreadCallBack = new CameraThread.CameraThreadCallBack() {
+            @Override
+            public void onOpenCamera(String cameraId) {
+                camera2Render.setCameraId(cameraId);
+            }
+        };
+    }
+
+    private void initCamera() {
+        CameraConfig cameraConfig = new CameraConfig();
+
+        cameraThread = new CameraThread(Camera2Activity.this);
+        cameraThread.setCameraConfig(cameraConfig);
+        cameraThread.setCameraThreadCallBack(cameraThreadCallBack);
+        cameraThread.start();
     }
 
     private void initView() {
+        FrameLayout layout = new FrameLayout(this);
+        ViewGroup.LayoutParams vl = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        setContentView(layout, vl);
+
+        initPreviewView(layout);
+
+        controlLayout = new ControlLayout(this);
+        controlLayout.setControlLayoutCallback(controlLayoutCallback);
+        vl = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layout.addView(controlLayout, vl);
+    }
+
+    private void initPreviewView(ViewGroup viewGroup) {
         glTextureView = new CameraGLTextureView(this);
         camera2Render = new Camera2Render();
         camera2Render.setCamera2RenderCallBack(camera2RenderCallBack);
         glTextureView.setRender(camera2Render);
         ViewGroup.LayoutParams vl = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        setContentView(glTextureView, vl);
+        viewGroup.addView(glTextureView, vl);
     }
 
     @Override

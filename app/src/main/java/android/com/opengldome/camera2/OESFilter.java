@@ -17,17 +17,10 @@ import android.opengl.Matrix;
 public class OESFilter extends AFilter {
 
     private int uMatrix;
-    private float[] matrix = new float[16];
+    private volatile float[] matrix = new float[16];
 
     public OESFilter(Context context) {
         super(context, R.raw.oes_vert, R.raw.oes_frag);
-
-        float[] mProjectionMatrix = new float[16];
-        float[] mViewMatrax = new float[16];
-        Matrix.setIdentityM(matrix, 0);
-        Matrix.frustumM(mProjectionMatrix, 0, -WHView.getViewWidth() / WHView.getViewHeight(), WHView.getViewWidth() / WHView.getViewHeight(), -1, 1, 4f, 7f);
-        Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -4.00001f, 0f, 0f, 0f, 1.f, 0f, 0.0f);
-        Matrix.multiplyMM(matrix, 0, mProjectionMatrix, 0, mViewMatrax, 0);
     }
 
     @Override
@@ -40,5 +33,26 @@ public class OESFilter extends AFilter {
     protected void bindValue() {
         super.bindValue();
         GLES30.glUniformMatrix4fv(uMatrix, 1, false, matrix, 0);
+    }
+
+    /**
+     * 通过当前的CameraId设置正确预览方向
+     */
+    public void setCameraId(String id) {
+        if (id.equals("0")) {
+            float[] mProjectionMatrix = new float[16];
+            float[] mViewMatrax = new float[16];
+            Matrix.setIdentityM(matrix, 0);
+            Matrix.frustumM(mProjectionMatrix, 0, -WHView.getViewWidth() / WHView.getViewHeight(), WHView.getViewWidth() / WHView.getViewHeight(), -1, 1, 4f, 7f);
+            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -4.00001f, 0f, 0f, 0f, 1.f, 0f, 0.0f);
+            Matrix.multiplyMM(matrix, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+        } else if (id.equals("1")) {
+            float[] mProjectionMatrix = new float[16];
+            float[] mViewMatrax = new float[16];
+            Matrix.setIdentityM(matrix, 0);
+            Matrix.frustumM(mProjectionMatrix, 0, -WHView.getViewWidth() / WHView.getViewHeight(), WHView.getViewWidth() / WHView.getViewHeight(), -1, 1, 4f, 7f);
+            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -4.00001f, 0f, 0f, 0f, -1.f, 0f, 0.0f);
+            Matrix.multiplyMM(matrix, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+        }
     }
 }

@@ -35,6 +35,7 @@ public class CameraThread extends Thread {
     public static final int MSG_PAUSE = 1;
     public static final int MSG_RESUME = 2;
     public static final int MSG_RELEASE = 3;
+    public static final int MSG_SWITCH = 4; // 切换镜头
 
     private CameraManager cameraManager;
     private CameraThreadHandler cameraThreadHandler;
@@ -43,15 +44,16 @@ public class CameraThread extends Thread {
     private CameraDevice curCameraDevice;
     private CameraCaptureSession curCameraCaptureSession;
 
+    private CameraThreadCallBack cameraThreadCallBack;
+
     private boolean inOnPause = false;
+
+    private @interface Status {
+
+    }
 
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-        try {
-            cameraManager.getCameraCharacteristics("1");
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
     }
 
     public void setCameraConfig(CameraConfig cameraConfig) {
@@ -89,17 +91,14 @@ public class CameraThread extends Thread {
 
     private void onPauseInner() {
         inOnPause = true;
-        if (curCameraDevice != null)
-            curCameraDevice.close();
-        curCameraDevice = null;
-        curCameraCaptureSession = null;
+        closeCameraInner();
     }
 
     private void onResumeInner() {
         if (inOnPause) {
+            inOnPause = false;
             openCameraInner();
         }
-        inOnPause = false;
     }
 
     private void quitAndReleaseInner() {
@@ -109,8 +108,15 @@ public class CameraThread extends Thread {
         }
     }
 
+    private void switchCameraInner() {
+        cameraConfig.switchCamera();
+        closeCameraInner();
+        openCameraInner();
+    }
+
     @SuppressLint("MissingPermission")
     private void openCameraInner() {
+        if (inOnPause) return;
         try {
             cameraManager.openCamera(cameraConfig.cameraId, new CameraDevice.StateCallback() {
                 @Override
@@ -135,10 +141,11 @@ public class CameraThread extends Thread {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+        cameraThreadCallBack.onOpenCamera(cameraConfig.cameraId);
     }
 
     private void createCaptureSession() {
-        if (curCameraDevice == null) return;
+        if (inOnPause || curCameraDevice == null) return;
         try {
             curCameraDevice.createCaptureSession(Arrays.<Surface>asList(new Surface(oesSurfaceTexture)), new CameraCaptureSession.StateCallback() {
                 @Override
@@ -161,52 +168,59 @@ public class CameraThread extends Thread {
     }
 
     private void openAndAdjustPreview() {
-        if (!inOnPause && curCameraDevice != null && curCameraCaptureSession != null) {
-            try {
-                CaptureRequest.Builder previewRequestBuilder = curCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-                previewRequestBuilder.addTarget(new Surface(oesSurfaceTexture));
-                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
-                previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
-                curCameraCaptureSession.setRepeatingRequest(previewRequestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
-                    @Override
-                    public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-                        super.onCaptureStarted(session, request, timestamp, frameNumber);
-                    }
+        if (inOnPause || curCameraDevice == null
+                || curCameraCaptureSession == null) return;
+        try {
+            CaptureRequest.Builder previewRequestBuilder = curCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            previewRequestBuilder.addTarget(new Surface(oesSurfaceTexture));
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
+            curCameraCaptureSession.setRepeatingRequest(previewRequestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
+                    super.onCaptureStarted(session, request, timestamp, frameNumber);
+                }
 
-                    @Override
-                    public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-                        super.onCaptureProgressed(session, request, partialResult);
-                    }
+                @Override
+                public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
+                    super.onCaptureProgressed(session, request, partialResult);
+                }
 
-                    @Override
-                    public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-                        super.onCaptureCompleted(session, request, result);
-                    }
+                @Override
+                public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                    super.onCaptureCompleted(session, request, result);
+                }
 
-                    @Override
-                    public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-                        super.onCaptureFailed(session, request, failure);
-                    }
+                @Override
+                public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
+                    super.onCaptureFailed(session, request, failure);
+                }
 
-                    @Override
-                    public void onCaptureSequenceCompleted(@NonNull CameraCaptureSession session, int sequenceId, long frameNumber) {
-                        super.onCaptureSequenceCompleted(session, sequenceId, frameNumber);
-                    }
+                @Override
+                public void onCaptureSequenceCompleted(@NonNull CameraCaptureSession session, int sequenceId, long frameNumber) {
+                    super.onCaptureSequenceCompleted(session, sequenceId, frameNumber);
+                }
 
-                    @Override
-                    public void onCaptureSequenceAborted(@NonNull CameraCaptureSession session, int sequenceId) {
-                        super.onCaptureSequenceAborted(session, sequenceId);
-                    }
+                @Override
+                public void onCaptureSequenceAborted(@NonNull CameraCaptureSession session, int sequenceId) {
+                    super.onCaptureSequenceAborted(session, sequenceId);
+                }
 
-                    @Override
-                    public void onCaptureBufferLost(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull Surface target, long frameNumber) {
-                        super.onCaptureBufferLost(session, request, target, frameNumber);
-                    }
-                }, new Handler());
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
+                @Override
+                public void onCaptureBufferLost(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull Surface target, long frameNumber) {
+                    super.onCaptureBufferLost(session, request, target, frameNumber);
+                }
+            }, new Handler());
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void closeCameraInner() {
+        if (curCameraDevice != null)
+            curCameraDevice.close();
+        curCameraDevice = null;
+        curCameraCaptureSession = null;
     }
 
     public void surfaceCreate(SurfaceTexture surfaceTexture) {
@@ -227,6 +241,11 @@ public class CameraThread extends Thread {
     public void release() {
         if (getHandler() != null)
             Message.obtain(getHandler(), MSG_RELEASE).sendToTarget();
+    }
+
+    public void switchCamera() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_SWITCH).sendToTarget();
     }
 
     private static class CameraThreadHandler extends Handler {
@@ -266,7 +285,21 @@ public class CameraThread extends Thread {
                         cameraThread.quitAndReleaseInner();
                     }
                     break;
+                case MSG_SWITCH:
+                    cameraThread = cameraThreadWeakReference.get();
+                    if (cameraThread != null) {
+                        cameraThread.switchCameraInner();
+                    }
+                    break;
             }
         }
+    }
+
+    public void setCameraThreadCallBack(CameraThreadCallBack callBack) {
+        this.cameraThreadCallBack = callBack;
+    }
+
+    public interface CameraThreadCallBack {
+        public void onOpenCamera(String cameraId);
     }
 }

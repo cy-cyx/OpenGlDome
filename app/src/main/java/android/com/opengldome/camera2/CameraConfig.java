@@ -11,7 +11,7 @@ import android.hardware.camera2.CaptureRequest;
 public class CameraConfig {
 
     /**
-     * "0"为前摄像头 "1"为后摄像头
+     * "1"为前摄像头 "0"为后摄像头
      */
     public String cameraId = "0";
 
@@ -26,4 +26,8 @@ public class CameraConfig {
      * {@link CaptureRequest#CONTROL_AF_MODE}
      */
     public int controlAeMode = CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
+
+    public String switchCamera() {
+        return cameraId = cameraId.equals("0") ? "1" : "0";
+    }
 }

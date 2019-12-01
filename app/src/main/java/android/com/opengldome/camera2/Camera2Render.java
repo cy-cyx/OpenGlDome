@@ -45,7 +45,7 @@ public class Camera2Render implements GLTextureView.GlRender {
         oesTexture = CommonUtils.createTextureOES();
         oesSurfaceTexture = new SurfaceTexture(oesTexture);
         // todo 这里设置Size会影响预览效果
-        oesSurfaceTexture.setDefaultBufferSize(5000, 5000);
+        oesSurfaceTexture.setDefaultBufferSize(2000, 2000);
         oesSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -75,6 +75,10 @@ public class Camera2Render implements GLTextureView.GlRender {
         oesFilter.onDraw(oesTexture, width, height);
         lookupTableFilter.setCurAlpha(1);
         lookupTableFilter.onDraw(glFrameBuffer.getTexture(), width, height);
+    }
+
+    public void setCameraId(String id) {
+        oesFilter.setCameraId(id);
     }
 
     public void setCamera2RenderCallBack(Camera2RenderCallBack callBack) {
