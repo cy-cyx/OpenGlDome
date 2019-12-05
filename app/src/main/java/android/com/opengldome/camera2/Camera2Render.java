@@ -80,7 +80,7 @@ public class Camera2Render implements GLTextureView.GlRender {
     public void onDraw() {
         oesFilter.setGlFrameBuffer(glFrameBuffer);
         oesFilter.onDraw(oesTexture, width, height);
-        lookupTableFilter.setCurAlpha(1);
+        lookupTableFilter.setCurAlpha(0.5f);
         lookupTableFilter.onDraw(glFrameBuffer.getTexture(), width, height);
     }
 

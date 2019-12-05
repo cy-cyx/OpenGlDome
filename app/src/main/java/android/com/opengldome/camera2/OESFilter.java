@@ -36,24 +36,10 @@ public class OESFilter extends AFilter {
     }
 
     /**
-     * 通过当前的CameraId设置正确预览方向
+     * 通过当前的CameraId设置正确预览方向和比例（投影 - 视图 - 模式 矩阵）
      */
     public void onOpenCamera(String id, Size size, int width, int height, int angle) {
         if (id.equals("0")) {
-
-            // 矫正角度
-            int upX = 0;
-            int upY = 0;
-            int upZ = 0;
-            if (angle == 0) {
-                upY = 1;
-            } else if (angle == 90) {
-                upX = 1;
-            } else if (angle == 180) {
-                upY = -1;
-            } else if (angle == 270) {
-                upX = -1;
-            }
 
             // 正确的显示大小
             int targetViewWidth = width;
@@ -67,33 +53,85 @@ public class OESFilter extends AFilter {
             int bufferWidth = size.getWidth();
             int bufferHeight = size.getHeight();
 
-            float left = -1;
-            float right = 1;
-            float bottom = -1;
-            float top = 1;
-            if ((float) targetViewWidth / (float) targetViewHeight >= (float) bufferWidth / (float) bufferHeight) {
-                float tempHeight = (float) targetViewWidth / (float) bufferWidth * (float) bufferHeight;
-                top = (float) tempHeight / (float) bufferHeight;
-                bottom = -(float) tempHeight / (float) bufferHeight;
-            } else {
+            float x = 1f;
+            float y = 1f;
+            if ((float) bufferWidth / (float) bufferHeight >= (float) targetViewWidth / (float) targetViewHeight) {
                 float tempWidth = (float) targetViewHeight / (float) bufferHeight * (float) bufferWidth;
-                right = (float) tempWidth / (float) bufferWidth;
-                left = -(float) tempWidth / (float) targetViewWidth;
+                x = tempWidth / bufferWidth;
+            } else {
+                float tempHeight = (float) targetViewWidth / (float) bufferWidth * (float) bufferHeight;
+                y = tempHeight / bufferHeight;
             }
+
 
             float[] mProjectionMatrix = new float[16];
             float[] mViewMatrax = new float[16];
+            float[] mModelMatrax = new float[16];
+
+            float[] mPv = new float[16];
+
+            float[] rotate = new float[16];
+            float[] scale = new float[16];
+
             Matrix.setIdentityM(matrix, 0);
-            Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, 4f, 7f);
-            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -4.00001f, 0f, 0f, 0f, upX, upY, upZ);
-            Matrix.multiplyMM(matrix, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+            Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3.f, 7f);
+            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -3.f, 0f, 0f, 0f, 0f, 1f, 0f);
+            Matrix.multiplyMM(mPv, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+
+            Matrix.setIdentityM(rotate, 0);
+            Matrix.rotateM(rotate, 0, angle, 0, 0, 1);
+            Matrix.setIdentityM(scale, 0);
+            Matrix.scaleM(scale, 0, x, y, 1f);
+            Matrix.multiplyMM(mModelMatrax, 0, rotate, 0, scale, 0);
+
+            Matrix.multiplyMM(matrix, 0, mPv, 0, mModelMatrax, 0);
+
         } else if (id.equals("1")) {
+
+            // 正确的显示大小
+            int targetViewWidth = width;
+            int targetViewHeight = height;
+
+            if (angle == 90 || angle == 270) {
+                targetViewWidth = height;
+                targetViewHeight = width;
+            }
+
+            int bufferWidth = size.getWidth();
+            int bufferHeight = size.getHeight();
+
+            float x = 1f;
+            float y = 1f;
+            if ((float) bufferWidth / (float) bufferHeight >= (float) targetViewWidth / (float) targetViewHeight) {
+                float tempWidth = (float) targetViewHeight / (float) bufferHeight * (float) bufferWidth;
+                x = tempWidth / bufferWidth;
+            } else {
+                float tempHeight = (float) targetViewWidth / (float) bufferWidth * (float) bufferHeight;
+                y = tempHeight / bufferHeight;
+            }
+
+
             float[] mProjectionMatrix = new float[16];
             float[] mViewMatrax = new float[16];
+            float[] mModelMatrax = new float[16];
+
+            float[] mPv = new float[16];
+
+            float[] rotate = new float[16];
+            float[] scale = new float[16];
+
             Matrix.setIdentityM(matrix, 0);
-            Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 4f, 7f);
-            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -4.00001f, 0f, 0f, 0f, 0.f, 1.f, 0.0f);
-            Matrix.multiplyMM(matrix, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+            Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3.f, 7f);
+            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, 3.f, 0f, 0f, 0f, 0f, -1f, 0f);
+            Matrix.multiplyMM(mPv, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+
+            Matrix.setIdentityM(rotate, 0);
+            Matrix.rotateM(rotate, 0, angle, 0, 0, 1);
+            Matrix.setIdentityM(scale, 0);
+            Matrix.scaleM(scale, 0, x, y, 1f);
+            Matrix.multiplyMM(mModelMatrax, 0, rotate, 0, scale, 0);
+
+            Matrix.multiplyMM(matrix, 0, mPv, 0, mModelMatrax, 0);
         }
     }
 }
