@@ -5,8 +5,8 @@ import android.com.opengldome.beauty.GLFrameBuffer;
 import android.com.opengldome.beauty.LookupTableFilter;
 import android.com.opengldome.egl.GLTextureView;
 import android.com.opengldome.utils.CommonUtils;
-import android.com.opengldome.utils.WHView;
 import android.graphics.SurfaceTexture;
+import android.util.Size;
 
 import java.lang.ref.WeakReference;
 
@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference;
  * create by cy
  * time : 2019/11/28
  * version : 1.0
- * Features : 用获取相机数据，并矫正方向
+ * Features :
  */
 public class Camera2Render implements GLTextureView.GlRender {
 
@@ -26,6 +26,7 @@ public class Camera2Render implements GLTextureView.GlRender {
     private int width;
     private int height;
     private WeakReference<GLTextureView> glTextureViewWeakReference;
+    private boolean create = false;
 
     private Camera2RenderCallBack camera2RenderCallBack;
 
@@ -35,17 +36,15 @@ public class Camera2Render implements GLTextureView.GlRender {
 
     @Override
     public void onSurfaceCreate() {
-        initOES();
-        glFrameBuffer = new GLFrameBuffer(2, (int) WHView.getViewWidth(), (int) WHView.getViewHeight());
+        create = true;
         oesFilter = new OESFilter(Application.getInstance());
         lookupTableFilter = new LookupTableFilter(Application.getInstance());
+        initOES();
     }
 
     private void initOES() {
         oesTexture = CommonUtils.createTextureOES();
         oesSurfaceTexture = new SurfaceTexture(oesTexture);
-        // todo 这里设置Size会影响预览效果
-        oesSurfaceTexture.setDefaultBufferSize(2000, 2000);
         oesSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -59,14 +58,22 @@ public class Camera2Render implements GLTextureView.GlRender {
                     glTextureView.requestRender();
             }
         });
-        if (camera2RenderCallBack != null)
-            camera2RenderCallBack.onEOSAvailable(oesSurfaceTexture);
     }
 
+    /**
+     * {@link android.view.TextureView.SurfaceTextureListener#onSurfaceTextureAvailable}默认调用同一个接口
+     * 当{@link #create}为true
+     */
     @Override
     public void onSurfaceChange(int width, int height) {
         this.width = width;
         this.height = height;
+        if (create) {
+            glFrameBuffer = new GLFrameBuffer(2, width, height);
+            if (camera2RenderCallBack != null)
+                camera2RenderCallBack.onEOSAvailable(oesSurfaceTexture);
+            create = false;
+        }
     }
 
     @Override
@@ -77,8 +84,9 @@ public class Camera2Render implements GLTextureView.GlRender {
         lookupTableFilter.onDraw(glFrameBuffer.getTexture(), width, height);
     }
 
-    public void setCameraId(String id) {
-        oesFilter.setCameraId(id);
+    public void onOpenCamera(String id, Size size, int angle) {
+        oesFilter.onOpenCamera(id, size, width,height,angle);
+        oesSurfaceTexture.setDefaultBufferSize(size.getWidth(), size.getHeight());
     }
 
     public void setCamera2RenderCallBack(Camera2RenderCallBack callBack) {
@@ -87,5 +95,13 @@ public class Camera2Render implements GLTextureView.GlRender {
 
     public interface Camera2RenderCallBack {
         public void onEOSAvailable(SurfaceTexture surfaceTexture);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }

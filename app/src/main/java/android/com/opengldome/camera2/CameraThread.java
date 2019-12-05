@@ -5,20 +5,24 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Size;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -48,12 +52,21 @@ public class CameraThread extends Thread {
 
     private boolean inOnPause = false;
 
-    private @interface Status {
-
-    }
 
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+    }
+
+    public Size[] getOutSizeByCameraId(String id) {
+        try {
+            CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(id);
+            StreamConfigurationMap streamConfigurationMap = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            if (streamConfigurationMap != null)
+                return streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        return new Size[0];
     }
 
     public void setCameraConfig(CameraConfig cameraConfig) {
@@ -117,6 +130,7 @@ public class CameraThread extends Thread {
     @SuppressLint("MissingPermission")
     private void openCameraInner() {
         if (inOnPause) return;
+        cameraThreadCallBack.onOpenCamera(cameraConfig.cameraId);
         try {
             cameraManager.openCamera(cameraConfig.cameraId, new CameraDevice.StateCallback() {
                 @Override
@@ -141,7 +155,6 @@ public class CameraThread extends Thread {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-        cameraThreadCallBack.onOpenCamera(cameraConfig.cameraId);
     }
 
     private void createCaptureSession() {
@@ -300,6 +313,6 @@ public class CameraThread extends Thread {
     }
 
     public interface CameraThreadCallBack {
-        public void onOpenCamera(String cameraId);
+        public void onOpenCamera(String id);
     }
 }

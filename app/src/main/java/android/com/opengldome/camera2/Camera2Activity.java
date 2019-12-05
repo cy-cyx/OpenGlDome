@@ -1,8 +1,10 @@
 package android.com.opengldome.camera2;
 
+import android.com.opengldome.camera2.utils.CameraUtil;
 import android.com.opengldome.camera2.view.ControlLayout;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
+import android.util.Size;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -29,6 +31,7 @@ public class Camera2Activity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CameraUtil.getPreViewRotation(this);
         initListen();
         initCamera();
         initView();
@@ -50,7 +53,10 @@ public class Camera2Activity extends AppCompatActivity {
         cameraThreadCallBack = new CameraThread.CameraThreadCallBack() {
             @Override
             public void onOpenCamera(String cameraId) {
-                camera2Render.setCameraId(cameraId);
+                // 找出最佳尺寸
+                Size optimalSize = CameraUtil.getOptimalSize(CameraUtil.getPreViewRotation(Camera2Activity.this), cameraThread.getOutSizeByCameraId(cameraId),
+                        camera2Render.getWidth(), camera2Render.getHeight());
+                camera2Render.onOpenCamera(cameraId, optimalSize, CameraUtil.getPreViewRotation(Camera2Activity.this));
             }
         };
     }
