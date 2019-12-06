@@ -13,6 +13,7 @@ import android.util.Size;
  * version : 1.0
  * Features : 相机返回的数据的第一层处理
  * 1、旋转成正确方向
+ * 2、修正成正确的比例
  */
 public class OESFilter extends AFilter {
 
