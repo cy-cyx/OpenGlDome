@@ -56,36 +56,28 @@ public class OESFilter extends AFilter {
             float x = 1f;
             float y = 1f;
             if ((float) bufferWidth / (float) bufferHeight >= (float) targetViewWidth / (float) targetViewHeight) {
-                float tempWidth = (float) targetViewHeight / (float) bufferHeight * (float) bufferWidth;
-                x = tempWidth / bufferWidth;
-            } else {
-                float tempHeight = (float) targetViewWidth / (float) bufferWidth * (float) bufferHeight;
+                float tempHeight = (float) bufferWidth / (float) targetViewWidth * (float) targetViewHeight;
                 y = tempHeight / bufferHeight;
+            } else {
+                float tempWidth = (float) bufferHeight / (float) targetViewHeight * (float) targetViewWidth;
+                x = tempWidth / bufferWidth;
             }
-
-
-            float[] mProjectionMatrix = new float[16];
-            float[] mViewMatrax = new float[16];
-            float[] mModelMatrax = new float[16];
-
-            float[] mPv = new float[16];
 
             float[] rotate = new float[16];
             float[] scale = new float[16];
 
-            Matrix.setIdentityM(matrix, 0);
-            Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3.f, 7f);
-            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, -3.f, 0f, 0f, 0f, 0f, 1f, 0f);
-            Matrix.multiplyMM(mPv, 0, mProjectionMatrix, 0, mViewMatrax, 0);
+            float[] temp = new float[16];
+            float[] flip = new float[16];
 
+            // 注意:左乘问题 先旋转成正确的方向 再缩放 最后在镜像翻转
             Matrix.setIdentityM(rotate, 0);
             Matrix.rotateM(rotate, 0, angle, 0, 0, 1);
             Matrix.setIdentityM(scale, 0);
             Matrix.scaleM(scale, 0, x, y, 1f);
-            Matrix.multiplyMM(mModelMatrax, 0, rotate, 0, scale, 0);
-
-            Matrix.multiplyMM(matrix, 0, mPv, 0, mModelMatrax, 0);
-
+            Matrix.setIdentityM(flip, 0);
+            Matrix.rotateM(flip, 0, 180, 0, 1, 0);
+            Matrix.multiplyMM(temp, 0, scale, 0, rotate, 0);
+            Matrix.multiplyMM(matrix, 0, flip, 0, temp, 0);
         } else if (id.equals("1")) {
 
             // 正确的显示大小
@@ -103,35 +95,21 @@ public class OESFilter extends AFilter {
             float x = 1f;
             float y = 1f;
             if ((float) bufferWidth / (float) bufferHeight >= (float) targetViewWidth / (float) targetViewHeight) {
-                float tempWidth = (float) targetViewHeight / (float) bufferHeight * (float) bufferWidth;
-                x = tempWidth / bufferWidth;
-            } else {
-                float tempHeight = (float) targetViewWidth / (float) bufferWidth * (float) bufferHeight;
+                float tempHeight = (float) bufferWidth / (float) targetViewWidth * (float) targetViewHeight;
                 y = tempHeight / bufferHeight;
+            } else {
+                float tempWidth = (float) bufferHeight / (float) targetViewHeight * (float) targetViewWidth;
+                x = tempWidth / bufferWidth;
             }
-
-
-            float[] mProjectionMatrix = new float[16];
-            float[] mViewMatrax = new float[16];
-            float[] mModelMatrax = new float[16];
-
-            float[] mPv = new float[16];
 
             float[] rotate = new float[16];
             float[] scale = new float[16];
 
-            Matrix.setIdentityM(matrix, 0);
-            Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3.f, 7f);
-            Matrix.setLookAtM(mViewMatrax, 0, 0, 0, 3.f, 0f, 0f, 0f, 0f, -1f, 0f);
-            Matrix.multiplyMM(mPv, 0, mProjectionMatrix, 0, mViewMatrax, 0);
-
             Matrix.setIdentityM(rotate, 0);
-            Matrix.rotateM(rotate, 0, angle, 0, 0, 1);
+            Matrix.rotateM(rotate, 0, angle + 180, 0, 0, 1);
             Matrix.setIdentityM(scale, 0);
             Matrix.scaleM(scale, 0, x, y, 1f);
-            Matrix.multiplyMM(mModelMatrax, 0, rotate, 0, scale, 0);
-
-            Matrix.multiplyMM(matrix, 0, mPv, 0, mModelMatrax, 0);
+            Matrix.multiplyMM(matrix, 0, scale, 0, rotate, 0);
         }
     }
 }
