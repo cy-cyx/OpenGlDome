@@ -22,41 +22,73 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Arrays;
+
+import static android.com.opengldome.camera2.Message.MSG_PAUSE;
+import static android.com.opengldome.camera2.Message.MSG_RELEASE;
+import static android.com.opengldome.camera2.Message.MSG_RESUME;
+import static android.com.opengldome.camera2.Message.MSG_SURFACE_CREATE;
+import static android.com.opengldome.camera2.Message.MSG_SWITCH;
 
 /**
  * create by cy
  * time : 2019/11/29
  * version : 1.0
  * Features : 该线程中管理着{@link android.graphics.Camera}
+ * xxxInner()方法说明运行相机专属的线程中
  */
 public class CameraThread extends Thread {
 
+    /**
+     * 记住当前所有参数
+     */
     private CameraConfig cameraConfig;
-
-    private static final int MSG_SURFACE_CREATE = 0; // 预览GlSurfaceView的OES成功创建（正常只会调用一次）
-    public static final int MSG_PAUSE = 1;
-    public static final int MSG_RESUME = 2;
-    public static final int MSG_RELEASE = 3;
-    public static final int MSG_SWITCH = 4; // 切换镜头
 
     private CameraManager cameraManager;
     private CameraThreadHandler cameraThreadHandler;
     private SurfaceTexture oesSurfaceTexture;
 
+    // 相机的打开关闭 只有在生命周期，和镜头切换 如果为空说明没有准备好或者生命周期中 请求直接不处理
     private CameraDevice curCameraDevice;
     private CameraCaptureSession curCameraCaptureSession;
 
     private CameraThreadCallBack cameraThreadCallBack;
+    private CameraCaptureSession.CaptureCallback captureCallback; // 相机拍摄结果的统一回调
 
     private boolean inOnPause = false;
-
-
+    
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        initListen();
     }
 
+    private void initListen() {
+        captureCallback = new CameraCaptureSession.CaptureCallback() {
+            @Override
+            public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
+                super.onCaptureStarted(session, request, timestamp, frameNumber);
+            }
+
+            @Override
+            public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
+                super.onCaptureProgressed(session, request, partialResult);
+            }
+
+            @Override
+            public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                super.onCaptureCompleted(session, request, result);
+            }
+
+            @Override
+            public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
+                super.onCaptureFailed(session, request, failure);
+            }
+        };
+    }
+
+    /**
+     * 获得对应镜头所有输出尺寸
+     */
     public Size[] getOutSizeByCameraId(String id) {
         try {
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(id);
@@ -102,6 +134,36 @@ public class CameraThread extends Thread {
             openCameraInner();
     }
 
+    @SuppressLint("MissingPermission")
+    private void openCameraInner() {
+        if (inOnPause) return;
+        cameraThreadCallBack.onOpenCamera(cameraConfig.cameraId);
+        try {
+            cameraManager.openCamera(cameraConfig.cameraId, new CameraDevice.StateCallback() {
+                @Override
+                public void onOpened(@NonNull CameraDevice camera) {
+                    if (!inOnPause) {
+                        curCameraDevice = camera;
+                        createCaptureSessionInner();
+                    }
+
+                }
+
+                @Override
+                public void onDisconnected(@NonNull CameraDevice camera) {
+
+                }
+
+                @Override
+                public void onError(@NonNull CameraDevice camera, int error) {
+
+                }
+            }, new Handler());
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void onPauseInner() {
         inOnPause = true;
         closeCameraInner();
@@ -127,37 +189,7 @@ public class CameraThread extends Thread {
         openCameraInner();
     }
 
-    @SuppressLint("MissingPermission")
-    private void openCameraInner() {
-        if (inOnPause) return;
-        cameraThreadCallBack.onOpenCamera(cameraConfig.cameraId);
-        try {
-            cameraManager.openCamera(cameraConfig.cameraId, new CameraDevice.StateCallback() {
-                @Override
-                public void onOpened(@NonNull CameraDevice camera) {
-                    if (!inOnPause) {
-                        curCameraDevice = camera;
-                        createCaptureSession();
-                    }
-
-                }
-
-                @Override
-                public void onDisconnected(@NonNull CameraDevice camera) {
-
-                }
-
-                @Override
-                public void onError(@NonNull CameraDevice camera, int error) {
-
-                }
-            }, new Handler());
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void createCaptureSession() {
+    private void createCaptureSessionInner() {
         if (inOnPause || curCameraDevice == null) return;
         try {
             curCameraDevice.createCaptureSession(Arrays.<Surface>asList(new Surface(oesSurfaceTexture)), new CameraCaptureSession.StateCallback() {
@@ -166,7 +198,7 @@ public class CameraThread extends Thread {
                     if (!inOnPause) {
                         curCameraCaptureSession = session;
                         // 管道连接后默认打开预览
-                        openAndAdjustPreview();
+                        openPreviewInner();
                     }
                 }
 
@@ -180,50 +212,39 @@ public class CameraThread extends Thread {
         }
     }
 
-    private void openAndAdjustPreview() {
-        if (inOnPause || curCameraDevice == null
-                || curCameraCaptureSession == null) return;
+    private void openPreviewInner() {
+        CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilder(new Surface(oesSurfaceTexture));
+        if (captureRequestBuilder == null) return;
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
+        setRepeatingRequestInner(captureRequestBuilder.build());
+    }
+
+    private CaptureRequest.Builder getCaptureRequestBuilder(Surface surfaceTexture) {
+        if (inOnPause || curCameraDevice == null) return null;
+        CaptureRequest.Builder captureRequest = null;
         try {
-            CaptureRequest.Builder previewRequestBuilder = curCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            previewRequestBuilder.addTarget(new Surface(oesSurfaceTexture));
-            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
-            previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
-            curCameraCaptureSession.setRepeatingRequest(previewRequestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-                    super.onCaptureStarted(session, request, timestamp, frameNumber);
-                }
+            captureRequest = curCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureRequest.addTarget(surfaceTexture);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        return captureRequest;
+    }
 
-                @Override
-                public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-                    super.onCaptureProgressed(session, request, partialResult);
-                }
+    private void setRepeatingRequestInner(CaptureRequest captureRequest) {
+        if (inOnPause || curCameraCaptureSession == null) return;
+        try {
+            curCameraCaptureSession.setRepeatingRequest(captureRequest, captureCallback, new Handler());
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
 
-                @Override
-                public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-                    super.onCaptureCompleted(session, request, result);
-                }
-
-                @Override
-                public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-                    super.onCaptureFailed(session, request, failure);
-                }
-
-                @Override
-                public void onCaptureSequenceCompleted(@NonNull CameraCaptureSession session, int sequenceId, long frameNumber) {
-                    super.onCaptureSequenceCompleted(session, sequenceId, frameNumber);
-                }
-
-                @Override
-                public void onCaptureSequenceAborted(@NonNull CameraCaptureSession session, int sequenceId) {
-                    super.onCaptureSequenceAborted(session, sequenceId);
-                }
-
-                @Override
-                public void onCaptureBufferLost(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull Surface target, long frameNumber) {
-                    super.onCaptureBufferLost(session, request, target, frameNumber);
-                }
-            }, new Handler());
+    private void captureInner(CaptureRequest captureRequest) {
+        if (inOnPause || curCameraCaptureSession == null) return;
+        try {
+            curCameraCaptureSession.capture(captureRequest, captureCallback, new Handler());
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -233,32 +254,9 @@ public class CameraThread extends Thread {
         if (curCameraDevice != null)
             curCameraDevice.close();
         curCameraDevice = null;
+        if (curCameraCaptureSession != null)
+            curCameraCaptureSession.close();
         curCameraCaptureSession = null;
-    }
-
-    public void surfaceCreate(SurfaceTexture surfaceTexture) {
-        if (getHandler() != null)
-            Message.obtain(getHandler(), MSG_SURFACE_CREATE, surfaceTexture).sendToTarget();
-    }
-
-    public void onPause() {
-        if (getHandler() != null)
-            Message.obtain(getHandler(), MSG_PAUSE).sendToTarget();
-    }
-
-    public void onResume() {
-        if (getHandler() != null)
-            Message.obtain(getHandler(), MSG_RESUME).sendToTarget();
-    }
-
-    public void release() {
-        if (getHandler() != null)
-            Message.obtain(getHandler(), MSG_RELEASE).sendToTarget();
-    }
-
-    public void switchCamera() {
-        if (getHandler() != null)
-            Message.obtain(getHandler(), MSG_SWITCH).sendToTarget();
     }
 
     private static class CameraThreadHandler extends Handler {
@@ -306,6 +304,32 @@ public class CameraThread extends Thread {
                     break;
             }
         }
+
+    }
+
+    public void surfaceCreate(SurfaceTexture surfaceTexture) {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_SURFACE_CREATE, surfaceTexture).sendToTarget();
+    }
+
+    public void onPause() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_PAUSE).sendToTarget();
+    }
+
+    public void onResume() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_RESUME).sendToTarget();
+    }
+
+    public void release() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_RELEASE).sendToTarget();
+    }
+
+    public void switchCamera() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_SWITCH).sendToTarget();
     }
 
     public void setCameraThreadCallBack(CameraThreadCallBack callBack) {

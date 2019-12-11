@@ -67,6 +67,9 @@ public class CameraUtil {
         DISPLAY_ORIENTATIONS.put(Surface.ROTATION_270, 180);
     }
 
+    /**
+     * 获得屏幕角度和预览角度的矫正角度（因为预览数据底层会自动帮我们转正，但是我们不需要矫正，需要转回来）
+     */
     public static int getPreViewRotation(Context context) {
         int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
         return DISPLAY_ORIENTATIONS.get(rotation);
