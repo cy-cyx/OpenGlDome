@@ -49,6 +49,11 @@ public class Camera2Activity extends AppCompatActivity {
             public void onSwitch() {
                 cameraThread.switchCamera();
             }
+
+            @Override
+            public void onFocusClick(int x, int y) {
+                cameraThread.focusAEAF(x, y);
+            }
         };
         cameraThreadCallBack = new CameraThread.CameraThreadCallBack() {
             @Override
@@ -56,6 +61,8 @@ public class Camera2Activity extends AppCompatActivity {
                 // 找出最佳尺寸
                 Size optimalSize = CameraUtil.getOptimalSize(CameraUtil.getPreViewRotation(Camera2Activity.this), cameraThread.getOutSizeByCameraId(cameraId),
                         camera2Render.getWidth(), camera2Render.getHeight());
+                // todo 这写法不好
+                cameraThread.cameraConfig.optimalSize = optimalSize;
                 camera2Render.onOpenCamera(cameraId, optimalSize, CameraUtil.getPreViewRotation(Camera2Activity.this));
             }
         };

@@ -1,7 +1,9 @@
 package android.com.opengldome.camera2;
 
 import android.annotation.SuppressLint;
+import android.com.opengldome.camera2.utils.CameraUtil;
 import android.content.Context;
+import android.graphics.Camera;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -12,6 +14,7 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.MeteringRectangle;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,7 +26,9 @@ import androidx.annotation.NonNull;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.HashMap;
 
+import static android.com.opengldome.camera2.Message.MSG_FOCUS;
 import static android.com.opengldome.camera2.Message.MSG_PAUSE;
 import static android.com.opengldome.camera2.Message.MSG_RELEASE;
 import static android.com.opengldome.camera2.Message.MSG_RESUME;
@@ -42,7 +47,7 @@ public class CameraThread extends Thread {
     /**
      * 记住当前所有参数
      */
-    private CameraConfig cameraConfig;
+    public CameraConfig cameraConfig;
 
     private CameraManager cameraManager;
     private CameraThreadHandler cameraThreadHandler;
@@ -56,7 +61,7 @@ public class CameraThread extends Thread {
     private CameraCaptureSession.CaptureCallback captureCallback; // 相机拍摄结果的统一回调
 
     private boolean inOnPause = false;
-    
+
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         initListen();
@@ -77,6 +82,7 @@ public class CameraThread extends Thread {
             @Override
             public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                 super.onCaptureCompleted(session, request, result);
+
             }
 
             @Override
@@ -100,6 +106,7 @@ public class CameraThread extends Thread {
         }
         return new Size[0];
     }
+
 
     public void setCameraConfig(CameraConfig cameraConfig) {
         this.cameraConfig = cameraConfig;
@@ -213,14 +220,14 @@ public class CameraThread extends Thread {
     }
 
     private void openPreviewInner() {
-        CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilder(new Surface(oesSurfaceTexture));
+        CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilderInner(new Surface(oesSurfaceTexture));
         if (captureRequestBuilder == null) return;
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
         captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
         setRepeatingRequestInner(captureRequestBuilder.build());
     }
 
-    private CaptureRequest.Builder getCaptureRequestBuilder(Surface surfaceTexture) {
+    private CaptureRequest.Builder getCaptureRequestBuilderInner(Surface surfaceTexture) {
         if (inOnPause || curCameraDevice == null) return null;
         CaptureRequest.Builder captureRequest = null;
         try {
@@ -244,7 +251,7 @@ public class CameraThread extends Thread {
     private void captureInner(CaptureRequest captureRequest) {
         if (inOnPause || curCameraCaptureSession == null) return;
         try {
-            curCameraCaptureSession.capture(captureRequest, captureCallback, new Handler());
+            curCameraCaptureSession.capture(captureRequest, null, new Handler());
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -257,6 +264,38 @@ public class CameraThread extends Thread {
         if (curCameraCaptureSession != null)
             curCameraCaptureSession.close();
         curCameraCaptureSession = null;
+    }
+
+    /**
+     * @param x 在屏幕坐标的x
+     * @param y 在屏幕坐标的y
+     */
+    private void focusAeAfInner(int x, int y) {
+
+        Size size = null;
+        try {
+            size = cameraManager.getCameraCharacteristics(cameraConfig.cameraId).get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+        MeteringRectangle[] meteringRectangles = CameraUtil.focusAeAf(x, y, cameraConfig.optimalSize, size);
+
+        cameraConfig.controlAfMode = CaptureRequest.CONTROL_AF_MODE_AUTO;
+
+        CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilderInner(new Surface(oesSurfaceTexture));
+        if (captureRequestBuilder == null) return;
+
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
+        captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{meteringRectangles[0]});
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[]{meteringRectangles[1]});
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
+
+        setRepeatingRequestInner(captureRequestBuilder.build());
+
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
+        captureInner(captureRequestBuilder.build());
     }
 
     private static class CameraThreadHandler extends Handler {
@@ -302,6 +341,21 @@ public class CameraThread extends Thread {
                         cameraThread.switchCameraInner();
                     }
                     break;
+                case MSG_FOCUS:
+                    HashMap request = (HashMap) msg.obj;
+                    Object x = request.get("x");
+                    Object y = request.get("y");
+                    int viewClickX = 0;
+                    int viewClickY = 0;
+                    if (x instanceof Integer)
+                        viewClickX = (int) x;
+                    if (y instanceof Integer)
+                        viewClickY = (int) y;
+
+                    cameraThread = cameraThreadWeakReference.get();
+                    if (cameraThread != null) {
+                        cameraThread.focusAeAfInner(viewClickX, viewClickY);
+                    }
             }
         }
 
@@ -330,6 +384,14 @@ public class CameraThread extends Thread {
     public void switchCamera() {
         if (getHandler() != null)
             Message.obtain(getHandler(), MSG_SWITCH).sendToTarget();
+    }
+
+    public void focusAEAF(int x, int y) {
+        HashMap<String, Integer> request = new HashMap<>();
+        request.put("x", x);
+        request.put("y", y);
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_FOCUS, request).sendToTarget();
     }
 
     public void setCameraThreadCallBack(CameraThreadCallBack callBack) {

@@ -1,12 +1,23 @@
 package android.com.opengldome.camera2.utils;
 
 import android.app.Activity;
+import android.com.opengldome.Application;
+import android.com.opengldome.utils.WHView;
 import android.content.Context;
+import android.hardware.camera2.params.MeteringRectangle;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
 import java.util.ArrayList;
+
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_ACTIVE_SCAN;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_FOCUSED_LOCKED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_INACTIVE;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_FOCUSED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_SCAN;
 
 /**
  * create by cy
@@ -58,6 +69,51 @@ public class CameraUtil {
         return result;
     }
 
+    /**
+     * 获得焦点位置
+     */
+    public static MeteringRectangle[] focusAeAf(int clickX, int clickY, Size optimalSize, Size array) {
+        int preViewRotation = 90;
+        int x = 0;
+        int y = 0;
+        if (preViewRotation == 90) {
+            // 先镜像
+            clickX = (int) (WHView.getViewWidth() - clickX);
+            clickY = clickY;
+
+            // 旋转90
+            x = clickY;
+            y = (int) (WHView.getViewWidth() - clickX);
+        }
+
+        float scac = (float) array.getWidth() / (float) optimalSize.getWidth();
+
+        int shang = 0;
+        int viewShang = 0;
+        int viewLeft = 0;
+
+        int height = (int) (optimalSize.getWidth() / (float) array.getWidth() * array.getHeight());
+        shang = (int) ((array.getHeight() - height) / 2f); // 上面需要加的
+
+        if (WHView.getViewHeight() / WHView.getViewWidth() > optimalSize.getWidth() / optimalSize.getHeight()) {
+            float v = (float) WHView.getViewHeight() / (float) optimalSize.getWidth() * optimalSize.getHeight();
+            float f = v / WHView.getViewWidth() - 1;
+            viewShang = (int) ((optimalSize.getHeight() * f) / 2f * scac);
+
+        } else {
+            float v = optimalSize.getHeight() / (float) WHView.getViewHeight() * WHView.getViewWidth();
+            viewLeft = (int) ((v - optimalSize.getWidth()) / 2f * scac);
+        }
+
+        x = (int) (x * scac + viewLeft);
+        y = (int) (y * scac + viewShang + shang);
+
+        MeteringRectangle[] m = new MeteringRectangle[2];
+        m[0] = new MeteringRectangle(x - 40, y - 40, 80, 80, 1000);
+        m[1] = new MeteringRectangle(x - 80, y - 80, 160, 160, 1000);
+        return m;
+    }
+
     private static SparseIntArray DISPLAY_ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -73,5 +129,27 @@ public class CameraUtil {
     public static int getPreViewRotation(Context context) {
         int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
         return DISPLAY_ORIENTATIONS.get(rotation);
+    }
+
+    public static void logFocus(int afStatus){
+        switch (afStatus){
+            case CONTROL_AF_STATE_INACTIVE:
+                Log.d("xx", "logFocus: AF已关闭或尚未尝试扫描/尚未被要求扫描。");
+                break;
+            case CONTROL_AF_STATE_PASSIVE_SCAN:
+                Log.d("xx", "logFocus: AF当前正在以连续自动对焦模式执行AF扫描，以启动照相机设备。");
+                break;
+            case CONTROL_AF_STATE_PASSIVE_FOCUSED:
+                Log.d("xx", "logFocus: AF当前认为它已成为焦点，但可能随时重启扫描。");
+                break;
+            case CONTROL_AF_STATE_ACTIVE_SCAN:
+                Log.d("xx", "logFocus: AF正在执行AF扫描，因为它是由AF触发器触发的。");
+                break;
+            case CONTROL_AF_STATE_FOCUSED_LOCKED:
+                Log.d("xx", "logFocus: AF认为对焦正确并锁定了焦点");
+                break;
+            case CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
+                Log.d("xx", "logFocus: ");
+        }
     }
 }

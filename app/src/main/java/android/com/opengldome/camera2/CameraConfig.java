@@ -1,6 +1,7 @@
 package android.com.opengldome.camera2;
 
 import android.hardware.camera2.CaptureRequest;
+import android.util.Size;
 
 /**
  * create by cy
@@ -14,6 +15,11 @@ public class CameraConfig {
      * "1"为前摄像头 "0"为后摄像头
      */
     public String cameraId = "0";
+
+    /**
+     * 输出尺寸
+     */
+    public Size optimalSize;
 
     /**
      * 对焦模式
