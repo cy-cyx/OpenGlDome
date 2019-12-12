@@ -200,6 +200,7 @@ public class CameraThread extends Thread {
 
     private void switchCameraInner() {
         cameraConfig.switchCamera();
+        cameraConfig.resetAeAfMode();
         closeCameraInner();
         openCameraInner();
     }
@@ -281,7 +282,7 @@ public class CameraThread extends Thread {
     private void focusAeAfInner(int x, int y) {
         MeteringRectangle[] meteringRectangles = CameraUtil.focusAeAf(x, y,
                 cameraConfig.optimalSize, getSensorPixelByCameraId(cameraConfig.cameraId),
-                cameraConfig.rotation);
+                cameraConfig.rotation, cameraConfig.cameraId);
 
         cameraConfig.controlAfMode = CaptureRequest.CONTROL_AF_MODE_AUTO;
 

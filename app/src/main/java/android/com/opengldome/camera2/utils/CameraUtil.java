@@ -78,13 +78,14 @@ public class CameraUtil {
      * @param optimalSize 预览尺寸
      * @param pixel       最大素材尺寸
      * @param rotation    方向（大部分机型默认为90）
+     * @param cameraId    区分当前是前摄还是后摄(屏幕坐标旋转不同)
      * @return 返回Af和Ae的参照框（Ae要比Af大效果更好）
      */
-    public static MeteringRectangle[] focusAeAf(int clickX, int clickY, Size optimalSize, Size pixel, int rotation) {
+    public static MeteringRectangle[] focusAeAf(int clickX, int clickY, Size optimalSize, Size pixel, int rotation, String cameraId) {
         int AF = 100 / 2;
         int AE = 120 / 2;
 
-        SizeF size = viewCoord2PreviewCoord(clickX, clickY, optimalSize, rotation);
+        SizeF size = viewCoord2PreviewCoord(clickX, clickY, optimalSize, rotation, cameraId);
 
         int optimalWidth = optimalSize.getWidth();
         int optimalHeight = optimalSize.getHeight();
@@ -140,7 +141,7 @@ public class CameraUtil {
     /**
      * 将在View上的点击位置转换成在预览尺寸的点击位置
      */
-    private static SizeF viewCoord2PreviewCoord(int clickX, int clickY, Size optimalSize, int rotation) {
+    private static SizeF viewCoord2PreviewCoord(int clickX, int clickY, Size optimalSize, int rotation, String cameraId) {
 
         // 点击的wiew是全显示
         int viewWidth = (int) WHView.getViewWidth();
@@ -154,11 +155,20 @@ public class CameraUtil {
 
         // 基本的机型都是90
         if (rotation == 90) {
+            if (cameraId.equals("0")) {
+                // 90旋转
+                float tempX = resultX;
+                resultX = resultY;
+                resultY = viewWidth - tempX;
+            } else {
+                // 镜像翻转
+                resultX = viewWidth - resultX;
 
-            // 90旋转
-            float tempX = resultX;
-            resultX = resultY;
-            resultY = viewWidth - tempX;
+                // 因为前摄在前面 90度翻转其实相对镜头是-90度
+                float tempX = resultX;
+                resultX = viewHeight - resultY;
+                resultY = tempX;
+            }
 
             // view的宽高也旋转90
             int tempWidth = viewWidth;

@@ -12,6 +12,8 @@ import android.view.View;
  */
 public class FocusView extends View {
 
+    private boolean showFocusUI = false;
+
     private FocusViewCallback focusViewCallback;
 
     private int width;

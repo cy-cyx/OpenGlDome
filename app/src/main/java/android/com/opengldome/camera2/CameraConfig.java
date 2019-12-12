@@ -1,6 +1,7 @@
 package android.com.opengldome.camera2;
 
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.util.Size;
 
 /**
@@ -43,5 +44,12 @@ public class CameraConfig {
      */
     public String switchCamera() {
         return cameraId = cameraId.equals("0") ? "1" : "0";
+    }
+
+    /**
+     * 重置为自动曝光和聚焦
+     */
+    public void resetAeAfMode() {
+        controlAfMode = CaptureResult.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
     }
 }
