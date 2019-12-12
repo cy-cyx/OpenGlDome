@@ -39,6 +39,7 @@ public class Camera2Render implements GLTextureView.GlRender {
         create = true;
         oesFilter = new OESFilter(Application.getInstance());
         lookupTableFilter = new LookupTableFilter(Application.getInstance());
+        lookupTableFilter.setUseOes(true);
         initOES();
     }
 
@@ -85,7 +86,7 @@ public class Camera2Render implements GLTextureView.GlRender {
     }
 
     public void onOpenCamera(String id, Size size, int angle) {
-        oesFilter.onOpenCamera(id, size, width,height,angle);
+        oesFilter.onOpenCamera(id, size, width, height, angle);
         oesSurfaceTexture.setDefaultBufferSize(size.getWidth(), size.getHeight());
     }
 

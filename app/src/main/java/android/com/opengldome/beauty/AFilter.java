@@ -31,6 +31,17 @@ public class AFilter {
     };
     private FloatBuffer bCoord;
 
+    private final float[] sOESCoord = {
+            0f, 1f,             // 左上角
+            0f, 0f,              // 左下角
+            1f, 1f,              // 右上角
+            1f, 0f              // 右下角
+    };
+    private FloatBuffer bOESCoord;
+
+    // 导入资源纹理使用OES
+    private boolean useOes = false;
+
     protected int program;
 
     private int position;
@@ -42,6 +53,7 @@ public class AFilter {
     public AFilter(Context context, int vert, int frag) {
         bPos = CommonUtils.fToB(sPos);
         bCoord = CommonUtils.fToB(sCoord);
+        bOESCoord = CommonUtils.fToB(sOESCoord);
         program = CommonUtils.createProgram(context, frag, vert);
         linkLocation();
     }
@@ -94,7 +106,7 @@ public class AFilter {
     protected void bindValue() {
         GLES30.glVertexAttribPointer(position, 3, GLES30.GL_FLOAT, false, 0, bPos);
         GLES30.glEnableVertexAttribArray(position);
-        GLES30.glVertexAttribPointer(texcoord, 2, GLES30.GL_FLOAT, false, 0, bCoord);
+        GLES30.glVertexAttribPointer(texcoord, 2, GLES30.GL_FLOAT, false, 0, useOes ? bOESCoord : bCoord);
         GLES30.glEnableVertexAttribArray(texcoord);
     }
 
@@ -123,5 +135,9 @@ public class AFilter {
 
     protected void onSurfaceChanged(int width, int height) {
 
+    }
+
+    public void setUseOes(boolean use) {
+        this.useOes = use;
     }
 }

@@ -153,8 +153,6 @@ public class CameraUtil {
 
         // 基本的机型都是90
         if (rotation == 90) {
-            // 先镜像反转
-            resultX = viewWidth - resultX;
 
             // 90旋转
             int tempX = resultX;
