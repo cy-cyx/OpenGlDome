@@ -1,7 +1,6 @@
 package android.com.opengldome.camera2.utils;
 
 import android.app.Activity;
-import android.com.opengldome.Application;
 import android.com.opengldome.utils.WHView;
 import android.content.Context;
 import android.graphics.Rect;
@@ -99,16 +98,16 @@ public class CameraUtil {
         if (pixelWidth / pixelHeight > optimalWidth / optimalHeight) {
             // 宽有富余
 
-            float zoom = pixelHeight / (float) optimalHeight;
+            float zoom = (float) pixelHeight / (float) optimalHeight;
 
-            float surplusWidth = ((pixelWidth - (float) pixelHeight / (float) optimalHeight * (float) optimalWidth) / 2.f);
+            float surplusWidth = ((pixelWidth - (float) pixelHeight * (float) optimalWidth / (float) optimalHeight) / 2.f);
 
             resultX = (int) (resultX * zoom + surplusWidth);
             resuleY = (int) (resuleY * zoom);
         } else {
-            float zoom = pixelHeight / (float) optimalHeight;
+            float zoom = (float) pixelWidth / (float) optimalWidth;
 
-            float surplusHeight = ((pixelHeight - (float) pixelWidth / (float) optimalWidth * (float) optimalHeight) / 2.f);
+            float surplusHeight = ((pixelHeight - (float) pixelWidth * (float) optimalHeight / (float) optimalWidth) / 2.f);
             resultX = (int) (resultX * zoom);
             resuleY = (int) (resuleY * zoom + surplusHeight);
         }
@@ -173,7 +172,7 @@ public class CameraUtil {
                 float zoom = (float) optimalHeight / (float) viewHeight;
 
                 // 多出的宽
-                int surplusWidth = (int) ((optimalWidth - (float) optimalHeight / (float) viewHeight * (float) viewWidth) / 2.f);
+                int surplusWidth = (int) ((optimalWidth - (float) optimalHeight * (float) viewWidth / (float) viewHeight) / 2.f);
 
                 resultX = (int) (resultX * zoom + surplusWidth);
                 resultY = (int) (resultY * zoom);
@@ -182,7 +181,7 @@ public class CameraUtil {
                 float zoom = (float) optimalWidth / (float) viewWidth;
 
                 // 多出的高
-                float surplusHeight = ((optimalHeight - (float) optimalWidth / (float) viewWidth * (float) viewHeight) / 2.f);
+                float surplusHeight = ((optimalHeight - (float) optimalWidth * (float) viewHeight / (float) viewWidth) / 2.f);
 
                 resultX = resultX * zoom;
                 resultY = resultY * zoom + surplusHeight;
@@ -227,7 +226,7 @@ public class CameraUtil {
                 Log.d("xx", "logFocus: AF认为对焦正确并锁定了焦点");
                 break;
             case CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
-                Log.d("xx", "logFocus: ");
+                Log.d("xx", "logFocus: 焦点失败");
         }
     }
 }
