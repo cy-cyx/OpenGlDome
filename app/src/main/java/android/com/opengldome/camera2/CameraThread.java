@@ -76,12 +76,13 @@ public class CameraThread extends Thread {
             @Override
             public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
                 super.onCaptureProgressed(session, request, partialResult);
+                CameraUtil.logFocus(partialResult);
             }
 
             @Override
             public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                 super.onCaptureCompleted(session, request, result);
-
+                CameraUtil.logFocus(result);
             }
 
             @Override

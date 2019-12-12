@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.com.opengldome.utils.WHView;
 import android.content.Context;
 import android.graphics.Rect;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.util.Log;
 import android.util.Size;
@@ -27,6 +29,15 @@ import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_S
  * Features :
  */
 public class CameraUtil {
+
+    private static SparseIntArray DISPLAY_ORIENTATIONS = new SparseIntArray();
+
+    static {
+        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_0, 90);
+        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_90, 0);
+        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_180, 270);
+        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_270, 180);
+    }
 
     /**
      * 找出最佳的预览尺寸
@@ -201,15 +212,6 @@ public class CameraUtil {
         return null;
     }
 
-    private static SparseIntArray DISPLAY_ORIENTATIONS = new SparseIntArray();
-
-    static {
-        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_0, 90);
-        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_90, 0);
-        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_180, 270);
-        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_270, 180);
-    }
-
     /**
      * 获得屏幕角度和预览角度的矫正角度（因为预览数据底层会自动帮我们转正，但是我们不需要矫正，需要转回来）
      */
@@ -218,7 +220,11 @@ public class CameraUtil {
         return DISPLAY_ORIENTATIONS.get(rotation);
     }
 
-    public static void logFocus(int afStatus) {
+    public static void logFocus(CaptureResult captureResult) {
+        Object o = captureResult.get(CaptureResult.CONTROL_AF_STATE);
+        int afStatus = -1;
+        if (o != null)
+            afStatus = (int) o;
         switch (afStatus) {
             case CONTROL_AF_STATE_INACTIVE:
                 Log.d("xx", "logFocus: AF已关闭或尚未尝试扫描/尚未被要求扫描。");
