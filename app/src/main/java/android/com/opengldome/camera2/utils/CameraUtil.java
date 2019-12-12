@@ -71,7 +71,7 @@ public class CameraUtil {
     }
 
     /**
-     * 获得焦点位置
+     * 获得对焦和测光的位置
      *
      * @param clickX      在View坐标的X
      * @param clickY      在View坐标的Y

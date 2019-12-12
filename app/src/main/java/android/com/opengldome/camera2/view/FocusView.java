@@ -2,14 +2,13 @@ package android.com.opengldome.camera2.view;
 
 import android.content.Context;
 import android.view.MotionEvent;
-import android.view.TouchDelegate;
 import android.view.View;
 
 /**
  * create by cy
  * time : 2019/12/11
  * version : 1.0
- * Features : 显示焦点点击的
+ * Features : 显示焦点点击的动画控件
  */
 public class FocusView extends View {
 

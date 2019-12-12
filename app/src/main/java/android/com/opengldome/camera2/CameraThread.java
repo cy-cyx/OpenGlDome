@@ -3,7 +3,6 @@ package android.com.opengldome.camera2;
 import android.annotation.SuppressLint;
 import android.com.opengldome.camera2.utils.CameraUtil;
 import android.content.Context;
-import android.graphics.Camera;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -280,8 +279,6 @@ public class CameraThread extends Thread {
      * @param y 在屏幕坐标的y
      */
     private void focusAeAfInner(int x, int y) {
-
-
         MeteringRectangle[] meteringRectangles = CameraUtil.focusAeAf(x, y,
                 cameraConfig.optimalSize, getSensorPixelByCameraId(cameraConfig.cameraId),
                 cameraConfig.rotation);
@@ -296,9 +293,9 @@ public class CameraThread extends Thread {
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{meteringRectangles[0]});
         captureRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[]{meteringRectangles[1]});
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
-
         setRepeatingRequestInner(captureRequestBuilder.build());
 
+        // 开始对焦
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
         captureInner(captureRequestBuilder.build());
     }

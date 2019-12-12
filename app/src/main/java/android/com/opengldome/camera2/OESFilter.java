@@ -100,11 +100,19 @@ public class OESFilter extends AFilter {
             float[] rotate = new float[16];
             float[] scale = new float[16];
 
+            // 前设需要镜像翻转
+            float[] temp = new float[16];
+            float[] flip = new float[16];
+
             Matrix.setIdentityM(rotate, 0);
             Matrix.rotateM(rotate, 0, angle, 0, 0, 1);
             Matrix.setIdentityM(scale, 0);
             Matrix.scaleM(scale, 0, x, y, 1f);
-            Matrix.multiplyMM(matrix, 0, scale, 0, rotate, 0);
+            Matrix.multiplyMM(temp, 0, scale, 0, rotate, 0);
+
+            Matrix.setIdentityM(flip, 0);
+            Matrix.rotateM(flip, 0, 180, 0, 1, 0);
+            Matrix.multiplyMM(matrix, 0, flip, 0, temp, 0);
         }
     }
 }
