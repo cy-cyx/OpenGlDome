@@ -232,8 +232,7 @@ public class CameraThread extends Thread {
     private void openPreviewInner() {
         CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilderInner(new Surface(oesSurfaceTexture));
         if (captureRequestBuilder == null) return;
-        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraConfig.controlAfMode);
-        captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraConfig.controlAeMode);
+        RequestBuilderFactory.getRequestBuilderBase(captureRequestBuilder, cameraConfig);
         setRepeatingRequestInner(captureRequestBuilder.build());
     }
 
@@ -286,15 +285,12 @@ public class CameraThread extends Thread {
                 cameraConfig.rotation, cameraConfig.cameraId);
 
         cameraConfig.controlAfMode = CaptureRequest.CONTROL_AF_MODE_AUTO;
+        cameraConfig.afRectangles = new MeteringRectangle[]{meteringRectangles[0]};
+        cameraConfig.aeRectangles = new MeteringRectangle[]{meteringRectangles[1]};
 
         CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilderInner(new Surface(oesSurfaceTexture));
         if (captureRequestBuilder == null) return;
-
-        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
-        captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{meteringRectangles[0]});
-        captureRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[]{meteringRectangles[1]});
-        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
+        RequestBuilderFactory.getRequestBuilderBase(captureRequestBuilder, cameraConfig);
         setRepeatingRequestInner(captureRequestBuilder.build());
 
         // 开始对焦

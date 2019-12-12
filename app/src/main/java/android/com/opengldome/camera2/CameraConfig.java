@@ -2,6 +2,7 @@ package android.com.opengldome.camera2;
 
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.params.MeteringRectangle;
 import android.util.Size;
 
 /**
@@ -15,7 +16,7 @@ public class CameraConfig {
     /**
      * "1"为前摄像头 "0"为后摄像头
      */
-    public String cameraId = "0";
+    public String cameraId = "1";
 
     /**
      * 角度
@@ -30,14 +31,30 @@ public class CameraConfig {
     /**
      * 对焦模式
      * {@link CaptureRequest#CONTROL_AF_MODE}
+     * <p>
+     * {@link android.hardware.camera2.CameraMetadata#CONTROL_AF_MODE_AUTO} 最基本的对焦方法，手动对焦时需要把他设置为该参数
+     * {@link android.hardware.camera2.CameraMetadata#CONTROL_AF_MODE_CONTINUOUS_PICTURE} 自动对焦根据算法确定一个持续对焦的图片
      */
     public int controlAfMode = CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
 
     /**
-     * 闪光灯
-     * {@link CaptureRequest#CONTROL_AF_MODE}
+     * 对焦区域
      */
-    public int controlAeMode = CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
+    public MeteringRectangle[] afRectangles = null;
+
+    /**
+     * 闪光灯
+     * {@link CaptureRequest#CONTROL_AE_MODE}
+     *
+     * {@link android.hardware.camera2.CameraMetadata#CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE} 红颜
+     * {@link android.hardware.camera2.CameraMetadata#CONTROL_AE_MODE_ON_AUTO_FLASH} 自动开启闪光灯
+     */
+    public int controlAeMode = CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH;
+
+    /**
+     * 测光区域
+     */
+    public MeteringRectangle[] aeRectangles = null;
 
     /**
      * 切换镜头方向
@@ -51,5 +68,7 @@ public class CameraConfig {
      */
     public void resetAeAfMode() {
         controlAfMode = CaptureResult.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
+        afRectangles = null;
+        aeRectangles = null;
     }
 }
