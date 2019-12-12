@@ -93,6 +93,26 @@
 
 4、手动对焦和手动测光（首次打开镜头和翻转镜头后还原成自动对焦和测光）
 
+先看一下实现效果：
+
+![img](https://github.com/cy-cyx/OpenGlDome/blob/master/img/201912121649.gif)
+
+对焦和测光的实现思路：
+
+(1) 计算在View点击的x,y映射当镜头数据完整尺寸上的x,y;具体详见代码
+
+![img](https://github.com/cy-cyx/OpenGlDome/blob/master/img/201912121712.png)
+
+关于裁剪的参考资料 [官方参考资料](https://source.android.google.cn/devices/camera/camera3_crop_reprocess)
+
+我在摸索时的参考资料
+
+https://www.jianshu.com/p/c95e0edf47de
+
+https://www.jianshu.com/p/49dcab6a1f75
+
+(2) 触发对焦
+
 **utils文件下**
 
 通用工具
