@@ -2,6 +2,7 @@ package android.com.opengldome.camera2.view;
 
 import android.content.Context;
 import android.view.MotionEvent;
+import android.view.TouchDelegate;
 import android.view.View;
 
 /**
@@ -14,6 +15,9 @@ public class FocusView extends View {
 
     private FocusViewCallback focusViewCallback;
 
+    private int width;
+    private int height;
+
     public FocusView(Context context) {
         super(context);
     }
@@ -25,10 +29,17 @@ public class FocusView extends View {
             case MotionEvent.ACTION_MOVE:
                 return true;
             case MotionEvent.ACTION_UP:
-                focusViewCallback.onFocusClick((int) event.getX(), (int) event.getY());
+                focusViewCallback.onFocusClick((int) event.getX(), (int) event.getY(), width, height);
                 return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        width = MeasureSpec.getSize(widthMeasureSpec);
+        height = MeasureSpec.getSize(heightMeasureSpec);
     }
 
     public void setFocusViewCallback(FocusViewCallback focusViewCallback) {
@@ -36,6 +47,6 @@ public class FocusView extends View {
     }
 
     public interface FocusViewCallback {
-        public void onFocusClick(int x, int y);
+        public void onFocusClick(int x, int y, int viewWidth, int viewHeight);
     }
 }

@@ -32,7 +32,7 @@ public class ControlLayout extends FrameLayout {
         };
         focusViewCallback = new FocusView.FocusViewCallback() {
             @Override
-            public void onFocusClick(int x, int y) {
+            public void onFocusClick(int x, int y, int viewWidth, int viewHeight) {
                 controlLayoutCallback.onFocusClick(x, y);
             }
         };

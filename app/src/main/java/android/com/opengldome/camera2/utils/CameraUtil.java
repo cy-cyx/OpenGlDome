@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.com.opengldome.Application;
 import android.com.opengldome.utils.WHView;
 import android.content.Context;
+import android.graphics.Rect;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.util.Log;
 import android.util.Size;
+import android.util.SizeF;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
@@ -81,9 +83,9 @@ public class CameraUtil {
      */
     public static MeteringRectangle[] focusAeAf(int clickX, int clickY, Size optimalSize, Size pixel, int rotation) {
         int AF = 100 / 2;
-        int AE = 150 / 2;
+        int AE = 120 / 2;
 
-        Size size = viewCoord2PreviewCoord(clickX, clickY, optimalSize, rotation);
+        SizeF size = viewCoord2PreviewCoord(clickX, clickY, optimalSize, rotation);
 
         int optimalWidth = optimalSize.getWidth();
         int optimalHeight = optimalSize.getHeight();
@@ -91,55 +93,55 @@ public class CameraUtil {
         int pixelWidth = pixel.getWidth();
         int pixelHeight = pixel.getHeight();
 
-        int resultX = size.getWidth();
-        int resuleY = size.getHeight();
+        float resultX = size.getWidth();
+        float resuleY = size.getHeight();
 
         if (pixelWidth / pixelHeight > optimalWidth / optimalHeight) {
             // 宽有富余
 
             float zoom = pixelHeight / (float) optimalHeight;
 
-            int surplusWidth = (int) ((pixelWidth - (float) pixelHeight / (float) optimalHeight * (float) optimalWidth) / 2.f);
+            float surplusWidth = ((pixelWidth - (float) pixelHeight / (float) optimalHeight * (float) optimalWidth) / 2.f);
 
             resultX = (int) (resultX * zoom + surplusWidth);
             resuleY = (int) (resuleY * zoom);
         } else {
             float zoom = pixelHeight / (float) optimalHeight;
 
-            int surplusHeight = (int) ((pixelHeight - (float) pixelWidth / (float) optimalWidth * (float) optimalHeight) / 2.f);
+            float surplusHeight = ((pixelHeight - (float) pixelWidth / (float) optimalWidth * (float) optimalHeight) / 2.f);
             resultX = (int) (resultX * zoom);
             resuleY = (int) (resuleY * zoom + surplusHeight);
         }
 
 
         MeteringRectangle af = new MeteringRectangle(
-                clamp(resultX - AF, 0, pixelWidth),
-                clamp(resuleY - AF, 0, pixelHeight),
-                clamp(resultX + AF, 0, pixelWidth),
-                clamp(resuleY + AF, 0, pixelHeight),
+                new Rect(clamp(resultX - AF, 0, pixelWidth),
+                        clamp(resuleY - AF, 0, pixelHeight),
+                        clamp(resultX + AF, 0, pixelWidth),
+                        clamp(resuleY + AF, 0, pixelHeight)),
                 MeteringRectangle.METERING_WEIGHT_MAX);
         MeteringRectangle ae = new MeteringRectangle(
-                clamp(resultX - AE, 0, pixelWidth),
-                clamp(resuleY - AE, 0, pixelHeight),
-                clamp(resultX + AE, 0, pixelWidth),
-                clamp(resuleY + AE, 0, pixelHeight),
+                new Rect(clamp(resultX - AE, 0, pixelWidth),
+                        clamp(resuleY - AE, 0, pixelHeight),
+                        clamp(resultX + AE, 0, pixelWidth),
+                        clamp(resuleY + AE, 0, pixelHeight)),
                 MeteringRectangle.METERING_WEIGHT_MAX);
 
         return new MeteringRectangle[]{af, ae};
     }
 
-    private static int clamp(int obj, int min, int max) {
+    private static int clamp(float obj, int min, int max) {
         if (obj < min)
             return min;
         if (obj > max)
             return max;
-        return obj;
+        return (int) obj;
     }
 
     /**
      * 将在View上的点击位置转换成在预览尺寸的点击位置
      */
-    private static Size viewCoord2PreviewCoord(int clickX, int clickY, Size optimalSize, int rotation) {
+    private static SizeF viewCoord2PreviewCoord(int clickX, int clickY, Size optimalSize, int rotation) {
 
         // 点击的wiew是全显示
         int viewWidth = (int) WHView.getViewWidth();
@@ -148,38 +150,43 @@ public class CameraUtil {
         int optimalWidth = optimalSize.getWidth();
         int optimalHeight = optimalSize.getHeight();
 
-        int resultX = clickX;
-        int resultY = clickY;
+        float resultX = clickX;
+        float resultY = clickY;
 
         // 基本的机型都是90
         if (rotation == 90) {
 
             // 90旋转
-            int tempX = resultX;
+            float tempX = resultX;
             resultX = resultY;
             resultY = viewWidth - tempX;
 
+            // view的宽高也旋转90
+            int tempWidth = viewWidth;
+            viewWidth = viewHeight;
+            viewHeight = tempWidth;
+
             // 判断显示区域的宽居中还高居中
-            if (optimalWidth / (float) optimalHeight < viewHeight / (float) viewWidth) {
-                // 宽大于高 等宽后 高居中
+            if (optimalWidth / (float) optimalHeight > viewWidth / (float) viewHeight) {
+                // 预览宽大于高 等宽后 高居中
 
-                float zoom = (float) viewHeight / optimalWidth;
-
-                // 多出的高
-                int surplusHeight = (int) (((float) viewHeight / (float) optimalWidth * (float) optimalHeight - viewWidth) / 2.f);
-
-                resultX = (int) (resultX * zoom);
-                resultY = (int) (resultY * zoom + surplusHeight);
-                return new Size(resultX, resultY);
-            } else {
-                float zoom = (float) viewWidth / optimalHeight;
+                float zoom = (float) optimalHeight / (float) viewHeight;
 
                 // 多出的宽
-                int surplusWidth = (int) (((float) viewWidth / (float) optimalHeight * (float) optimalWidth - viewHeight) / 2.f);
+                int surplusWidth = (int) ((optimalWidth - (float) optimalHeight / (float) viewHeight * (float) viewWidth) / 2.f);
 
                 resultX = (int) (resultX * zoom + surplusWidth);
                 resultY = (int) (resultY * zoom);
-                return new Size(resultX, resultY);
+                return new SizeF(resultX, resultY);
+            } else {
+                float zoom = (float) optimalWidth / (float) viewWidth;
+
+                // 多出的高
+                float surplusHeight = ((optimalHeight - (float) optimalWidth / (float) viewWidth * (float) viewHeight) / 2.f);
+
+                resultX = resultX * zoom;
+                resultY = resultY * zoom + surplusHeight;
+                return new SizeF(resultX, resultY);
             }
         }
         return null;
