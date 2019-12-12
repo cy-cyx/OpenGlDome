@@ -70,6 +70,7 @@ public class Camera2Activity extends AppCompatActivity {
 
     private void initCamera() {
         CameraConfig cameraConfig = new CameraConfig();
+        cameraConfig.rotation = CameraUtil.getPreViewRotation(this);
 
         cameraThread = new CameraThread(Camera2Activity.this);
         cameraThread.setCameraConfig(cameraConfig);

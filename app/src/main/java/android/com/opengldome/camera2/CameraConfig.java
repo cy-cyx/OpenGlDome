@@ -17,7 +17,12 @@ public class CameraConfig {
     public String cameraId = "0";
 
     /**
-     * 输出尺寸
+     * 角度
+     */
+    public int rotation = 0;
+
+    /**
+     * 输出最佳尺寸
      */
     public Size optimalSize;
 
@@ -33,6 +38,9 @@ public class CameraConfig {
      */
     public int controlAeMode = CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
 
+    /**
+     * 切换镜头方向
+     */
     public String switchCamera() {
         return cameraId = cameraId.equals("0") ? "1" : "0";
     }

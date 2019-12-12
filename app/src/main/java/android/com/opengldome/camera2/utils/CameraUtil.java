@@ -71,47 +71,120 @@ public class CameraUtil {
 
     /**
      * 获得焦点位置
+     *
+     * @param clickX      在View坐标的X
+     * @param clickY      在View坐标的Y
+     * @param optimalSize 预览尺寸
+     * @param pixel       最大素材尺寸
+     * @param rotation    方向（大部分机型默认为90）
+     * @return 返回Af和Ae的参照框（Ae要比Af大效果更好）
      */
-    public static MeteringRectangle[] focusAeAf(int clickX, int clickY, Size optimalSize, Size array) {
-        int preViewRotation = 90;
-        int x = 0;
-        int y = 0;
-        if (preViewRotation == 90) {
-            // 先镜像
-            clickX = (int) (WHView.getViewWidth() - clickX);
-            clickY = clickY;
+    public static MeteringRectangle[] focusAeAf(int clickX, int clickY, Size optimalSize, Size pixel, int rotation) {
+        int AF = 100 / 2;
+        int AE = 150 / 2;
 
-            // 旋转90
-            x = clickY;
-            y = (int) (WHView.getViewWidth() - clickX);
-        }
+        Size size = viewCoord2PreviewCoord(clickX, clickY, optimalSize, rotation);
 
-        float scac = (float) array.getWidth() / (float) optimalSize.getWidth();
+        int optimalWidth = optimalSize.getWidth();
+        int optimalHeight = optimalSize.getHeight();
 
-        int shang = 0;
-        int viewShang = 0;
-        int viewLeft = 0;
+        int pixelWidth = pixel.getWidth();
+        int pixelHeight = pixel.getHeight();
 
-        int height = (int) (optimalSize.getWidth() / (float) array.getWidth() * array.getHeight());
-        shang = (int) ((array.getHeight() - height) / 2f); // 上面需要加的
+        int resultX = size.getWidth();
+        int resuleY = size.getHeight();
 
-        if (WHView.getViewHeight() / WHView.getViewWidth() > optimalSize.getWidth() / optimalSize.getHeight()) {
-            float v = (float) WHView.getViewHeight() / (float) optimalSize.getWidth() * optimalSize.getHeight();
-            float f = v / WHView.getViewWidth() - 1;
-            viewShang = (int) ((optimalSize.getHeight() * f) / 2f * scac);
+        if (pixelWidth / pixelHeight > optimalWidth / optimalHeight) {
+            // 宽有富余
 
+            float zoom = pixelHeight / (float) optimalHeight;
+
+            int surplusWidth = (int) ((pixelWidth - (float) pixelHeight / (float) optimalHeight * (float) optimalWidth) / 2.f);
+
+            resultX = (int) (resultX * zoom + surplusWidth);
+            resuleY = (int) (resuleY * zoom);
         } else {
-            float v = optimalSize.getHeight() / (float) WHView.getViewHeight() * WHView.getViewWidth();
-            viewLeft = (int) ((v - optimalSize.getWidth()) / 2f * scac);
+            float zoom = pixelHeight / (float) optimalHeight;
+
+            int surplusHeight = (int) ((pixelHeight - (float) pixelWidth / (float) optimalWidth * (float) optimalHeight) / 2.f);
+            resultX = (int) (resultX * zoom);
+            resuleY = (int) (resuleY * zoom + surplusHeight);
         }
 
-        x = (int) (x * scac + viewLeft);
-        y = (int) (y * scac + viewShang + shang);
 
-        MeteringRectangle[] m = new MeteringRectangle[2];
-        m[0] = new MeteringRectangle(x - 40, y - 40, 80, 80, 1000);
-        m[1] = new MeteringRectangle(x - 80, y - 80, 160, 160, 1000);
-        return m;
+        MeteringRectangle af = new MeteringRectangle(
+                clamp(resultX - AF, 0, pixelWidth),
+                clamp(resuleY - AF, 0, pixelHeight),
+                clamp(resultX + AF, 0, pixelWidth),
+                clamp(resuleY + AF, 0, pixelHeight),
+                MeteringRectangle.METERING_WEIGHT_MAX);
+        MeteringRectangle ae = new MeteringRectangle(
+                clamp(resultX - AE, 0, pixelWidth),
+                clamp(resuleY - AE, 0, pixelHeight),
+                clamp(resultX + AE, 0, pixelWidth),
+                clamp(resuleY + AE, 0, pixelHeight),
+                MeteringRectangle.METERING_WEIGHT_MAX);
+
+        return new MeteringRectangle[]{af, ae};
+    }
+
+    private static int clamp(int obj, int min, int max) {
+        if (obj < min)
+            return min;
+        if (obj > max)
+            return max;
+        return obj;
+    }
+
+    /**
+     * 将在View上的点击位置转换成在预览尺寸的点击位置
+     */
+    private static Size viewCoord2PreviewCoord(int clickX, int clickY, Size optimalSize, int rotation) {
+
+        // 点击的wiew是全显示
+        int viewWidth = (int) WHView.getViewWidth();
+        int viewHeight = (int) WHView.getViewHeight();
+
+        int optimalWidth = optimalSize.getWidth();
+        int optimalHeight = optimalSize.getHeight();
+
+        int resultX = clickX;
+        int resultY = clickY;
+
+        // 基本的机型都是90
+        if (rotation == 90) {
+            // 先镜像反转
+            resultX = viewWidth - resultX;
+
+            // 90旋转
+            int tempX = resultX;
+            resultX = resultY;
+            resultY = viewWidth - tempX;
+
+            // 判断显示区域的宽居中还高居中
+            if (optimalWidth / (float) optimalHeight < viewHeight / (float) viewWidth) {
+                // 宽大于高 等宽后 高居中
+
+                float zoom = (float) viewHeight / optimalWidth;
+
+                // 多出的高
+                int surplusHeight = (int) (((float) viewHeight / (float) optimalWidth * (float) optimalHeight - viewWidth) / 2.f);
+
+                resultX = (int) (resultX * zoom);
+                resultY = (int) (resultY * zoom + surplusHeight);
+                return new Size(resultX, resultY);
+            } else {
+                float zoom = (float) viewWidth / optimalHeight;
+
+                // 多出的宽
+                int surplusWidth = (int) (((float) viewWidth / (float) optimalHeight * (float) optimalWidth - viewHeight) / 2.f);
+
+                resultX = (int) (resultX * zoom + surplusWidth);
+                resultY = (int) (resultY * zoom);
+                return new Size(resultX, resultY);
+            }
+        }
+        return null;
     }
 
     private static SparseIntArray DISPLAY_ORIENTATIONS = new SparseIntArray();
@@ -131,8 +204,8 @@ public class CameraUtil {
         return DISPLAY_ORIENTATIONS.get(rotation);
     }
 
-    public static void logFocus(int afStatus){
-        switch (afStatus){
+    public static void logFocus(int afStatus) {
+        switch (afStatus) {
             case CONTROL_AF_STATE_INACTIVE:
                 Log.d("xx", "logFocus: AF已关闭或尚未尝试扫描/尚未被要求扫描。");
                 break;

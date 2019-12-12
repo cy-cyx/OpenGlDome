@@ -107,6 +107,15 @@ public class CameraThread extends Thread {
         return new Size[0];
     }
 
+    public Size getSensorPixelByCameraId(String id) {
+        Size size = null;
+        try {
+            size = cameraManager.getCameraCharacteristics(id).get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
 
     public void setCameraConfig(CameraConfig cameraConfig) {
         this.cameraConfig = cameraConfig;
@@ -272,14 +281,10 @@ public class CameraThread extends Thread {
      */
     private void focusAeAfInner(int x, int y) {
 
-        Size size = null;
-        try {
-            size = cameraManager.getCameraCharacteristics(cameraConfig.cameraId).get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
 
-        MeteringRectangle[] meteringRectangles = CameraUtil.focusAeAf(x, y, cameraConfig.optimalSize, size);
+        MeteringRectangle[] meteringRectangles = CameraUtil.focusAeAf(x, y,
+                cameraConfig.optimalSize, getSensorPixelByCameraId(cameraConfig.cameraId),
+                cameraConfig.rotation);
 
         cameraConfig.controlAfMode = CaptureRequest.CONTROL_AF_MODE_AUTO;
 
