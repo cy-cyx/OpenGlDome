@@ -13,6 +13,10 @@ import android.util.Size;
  */
 public class CameraConfig {
 
+    public final int maxWidth = 1080;
+    public final int maxHeight = 1080;
+
+
     /**
      * "1"为前摄像头 "0"为后摄像头
      */
@@ -45,11 +49,11 @@ public class CameraConfig {
     /**
      * 闪光灯
      * {@link CaptureRequest#CONTROL_AE_MODE}
-     *
+     * <p>
      * {@link android.hardware.camera2.CameraMetadata#CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE} 红颜
      * {@link android.hardware.camera2.CameraMetadata#CONTROL_AE_MODE_ON_AUTO_FLASH} 自动开启闪光灯
      */
-    public int controlAeMode = CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH;
+    public int controlAeMode = CaptureRequest.CONTROL_AE_MODE_ON;
 
     /**
      * 测光区域

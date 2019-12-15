@@ -12,10 +12,12 @@ public class ControlLayout extends FrameLayout {
 
     private TopLayout topLayout;
     private FocusView focusView;
+    private ButtonLayout buttonLayout;
 
     private TopLayout.TopLayoutCallback topLayoutCallback;
     private ControlLayoutCallback controlLayoutCallback;
     private FocusView.FocusViewCallback focusViewCallback;
+    private ButtonLayout.ButtonLayoutCallback buttonLayoutCallback;
 
     public ControlLayout(@NonNull Context context) {
         super(context);
@@ -36,6 +38,12 @@ public class ControlLayout extends FrameLayout {
                 controlLayoutCallback.onFocusClick(x, y);
             }
         };
+        buttonLayoutCallback = new ButtonLayout.ButtonLayoutCallback() {
+            @Override
+            public void onShutCLick() {
+                controlLayoutCallback.onShutClick();
+            }
+        };
     }
 
     private void initView() {
@@ -44,9 +52,14 @@ public class ControlLayout extends FrameLayout {
         fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         addView(focusView, fl);
 
+        buttonLayout = new ButtonLayout(getContext());
+        buttonLayout.setButtonLayoutCallback(buttonLayoutCallback);
+        fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        addView(buttonLayout, fl);
+
         topLayout = new TopLayout(getContext());
         topLayout.setTopLayoutCallback(topLayoutCallback);
-        fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
+        fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         addView(topLayout, fl);
     }
 
@@ -58,5 +71,7 @@ public class ControlLayout extends FrameLayout {
         public void onSwitch();
 
         public void onFocusClick(int x, int y);
+
+        public void onShutClick();
     }
 }
