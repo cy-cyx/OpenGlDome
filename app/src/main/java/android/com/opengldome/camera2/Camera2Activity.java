@@ -70,6 +70,11 @@ public class Camera2Activity extends AppCompatActivity {
                 cameraThread.cameraConfig.optimalSize = optimalSize;
                 camera2Render.onOpenCamera(cameraId, optimalSize, CameraUtil.getPreViewRotation(Camera2Activity.this));
             }
+
+            @Override
+            public void onCapture(byte[] data, boolean front, int width, int height) {
+
+            }
         };
     }
 

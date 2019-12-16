@@ -28,9 +28,14 @@ public class CameraConfig {
     public int rotation = 0;
 
     /**
-     * 输出最佳尺寸
+     * 预览输出最佳尺寸
      */
     public Size optimalSize;
+
+    /**
+     * 拍照输出的尺寸
+     */
+    public Size outSize;
 
     /**
      * 对焦模式
@@ -74,5 +79,12 @@ public class CameraConfig {
         controlAfMode = CaptureResult.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
         afRectangles = null;
         aeRectangles = null;
+    }
+
+    /**
+     * 由于角度部分计算需要颠倒宽高
+     */
+    public boolean rotationIs90of270() {
+        return rotation == 90 || rotation == 270;
     }
 }

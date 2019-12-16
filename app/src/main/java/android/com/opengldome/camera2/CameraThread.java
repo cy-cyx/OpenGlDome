@@ -3,8 +3,6 @@ package android.com.opengldome.camera2;
 import android.annotation.SuppressLint;
 import android.com.opengldome.camera2.utils.CameraUtil;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -72,7 +70,6 @@ public class CameraThread extends Thread {
     private CameraCaptureSession.CaptureCallback captureCallback; // 相机拍摄结果的统一回调
 
     private boolean inOnPause = false;
-
 
     private @interface STATUS {
         int preview = 0;  // 预览模式（包括预览的对焦）
@@ -155,9 +152,11 @@ public class CameraThread extends Thread {
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
-                BitmapFactory.Options opt = new BitmapFactory.Options();
-                opt.inJustDecodeBounds = false;
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opt);
+                if (cameraConfig.rotationIs90of270()) {
+                    cameraThreadCallBack.onCapture(bytes, cameraConfig.cameraId.equals("1"), cameraConfig.outSize.getHeight(), cameraConfig.outSize.getWidth());
+                } else {
+                    cameraThreadCallBack.onCapture(bytes, cameraConfig.cameraId.equals("1"), cameraConfig.outSize.getWidth(), cameraConfig.outSize.getHeight());
+                }
             }
         };
     }
@@ -204,7 +203,7 @@ public class CameraThread extends Thread {
         if (streamConfigurationMap != null) {
             Size[] outputSizes = streamConfigurationMap.getOutputSizes(ImageFormat.JPEG);
             for (Size size : outputSizes) {
-                if (cameraConfig.rotation == 90 || cameraConfig.rotation == 270) {
+                if (cameraConfig.rotationIs90of270()) {
                     if (size.getWidth() <= cameraConfig.maxHeight && size.getHeight() <= cameraConfig.maxWidth) {
                         return size;
                     }
@@ -261,7 +260,12 @@ public class CameraThread extends Thread {
         if (size == null) {
             throw new RuntimeException("相机错误");
         }
-        imageReader = ImageReader.newInstance(size.getHeight(), size.getWidth(), ImageFormat.JPEG, 2);
+        cameraConfig.outSize = size;
+        if (cameraConfig.rotationIs90of270()) {
+            imageReader = ImageReader.newInstance(size.getHeight(), size.getWidth(), ImageFormat.JPEG, 2);
+        } else {
+            imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
+        }
         imageReader.setOnImageAvailableListener(onImageAvailableListener, getHandler());
 
         cameraThreadCallBack.onOpenCamera(cameraConfig.cameraId);
@@ -419,7 +423,7 @@ public class CameraThread extends Thread {
     }
 
     /**
-     * 聚焦 - 》 预捕获序列（AE）- 》拍照
+     * 聚焦 - 》 预捕获序列（AE）{@link #runPrecaptureSequenceInner()}- 》拍照{@link #takePicInner()}
      */
     private void focusToTakePicInner() {
         if (inOnPause || capturing()) return;
@@ -430,6 +434,7 @@ public class CameraThread extends Thread {
         captureInner(captureRequestBuilder.build());
         status = STATUS.captureAf;
     }
+
 
     private void runPrecaptureSequenceInner() {
         if (inOnPause) return;
@@ -442,10 +447,6 @@ public class CameraThread extends Thread {
         status = STATUS.captureAe;
     }
 
-
-    /**
-     * 拍照
-     */
     private void takePicInner() {
         if (inOnPause) return;
         CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilderInner(CameraDevice.TEMPLATE_STILL_CAPTURE, imageReader.getSurface());
@@ -576,5 +577,15 @@ public class CameraThread extends Thread {
 
     public interface CameraThreadCallBack {
         public void onOpenCamera(String id);
+
+        /**
+         * 拍照的回调
+         *
+         * @param data   图像数据
+         * @param front  前置需要颠倒
+         * @param width  宽
+         * @param height 高
+         */
+        public void onCapture(byte[] data, boolean front, int width, int height);
     }
 }
