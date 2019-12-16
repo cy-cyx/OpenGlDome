@@ -13,5 +13,5 @@ public class Message {
     public static final int MSG_RESUME = 2;
     public static final int MSG_RELEASE = 3;
     public static final int MSG_SWITCH = 4; // 切换镜头
-    public static final int MSG_FOCUS = 5; // 切换镜头
+    public static final int MSG_FOCUS = 5; // 对焦、测光
 }

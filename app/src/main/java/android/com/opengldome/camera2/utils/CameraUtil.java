@@ -228,21 +228,24 @@ public class CameraUtil {
         switch (afStatus) {
             case CONTROL_AF_STATE_INACTIVE:
                 Log.d("xx", "logFocus: AF已关闭或尚未尝试扫描/尚未被要求扫描。");
-                break;
+                return;
             case CONTROL_AF_STATE_PASSIVE_SCAN:
                 Log.d("xx", "logFocus: AF当前正在以连续自动对焦模式执行AF扫描，以启动照相机设备。");
-                break;
+                return;
             case CONTROL_AF_STATE_PASSIVE_FOCUSED:
                 Log.d("xx", "logFocus: AF当前认为它已成为焦点，但可能随时重启扫描。");
-                break;
+                return;
             case CONTROL_AF_STATE_ACTIVE_SCAN:
                 Log.d("xx", "logFocus: AF正在执行AF扫描，因为它是由AF触发器触发的。");
-                break;
+                return;
             case CONTROL_AF_STATE_FOCUSED_LOCKED:
                 Log.d("xx", "logFocus: AF认为对焦正确并锁定了焦点");
-                break;
+                return;
             case CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
                 Log.d("xx", "logFocus: 焦点失败");
+                return;
+            case  -1:
+                Log.d("xx", "logFocus: null");
         }
     }
 }
