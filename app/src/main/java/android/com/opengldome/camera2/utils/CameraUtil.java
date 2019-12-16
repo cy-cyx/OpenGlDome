@@ -14,12 +14,19 @@ import android.view.Surface;
 
 import java.util.ArrayList;
 
+import static android.hardware.camera2.CameraMetadata.CONTROL_AE_STATE_CONVERGED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AE_STATE_FLASH_REQUIRED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AE_STATE_INACTIVE;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AE_STATE_LOCKED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AE_STATE_PRECAPTURE;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AE_STATE_SEARCHING;
 import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_ACTIVE_SCAN;
 import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_FOCUSED_LOCKED;
 import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_INACTIVE;
 import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
 import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_FOCUSED;
 import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_SCAN;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_UNFOCUSED;
 
 /**
  * create by cy
@@ -219,32 +226,64 @@ public class CameraUtil {
         return DISPLAY_ORIENTATIONS.get(rotation);
     }
 
-    public static void logFocus(CaptureResult captureResult) {
+    public static void logAF(CaptureResult captureResult) {
         Object o = captureResult.get(CaptureResult.CONTROL_AF_STATE);
         int afStatus = -1;
         if (o != null)
             afStatus = (int) o;
         switch (afStatus) {
             case CONTROL_AF_STATE_INACTIVE:
-                Log.d("xx", "logFocus: AF已关闭或尚未尝试扫描/尚未被要求扫描。");
+                Log.d("xx", "logAF: AF已关闭或尚未尝试扫描/尚未被要求扫描。");
                 return;
             case CONTROL_AF_STATE_PASSIVE_SCAN:
-                Log.d("xx", "logFocus: AF当前正在以连续自动对焦模式执行AF扫描，以启动照相机设备。");
+                Log.d("xx", "logAF: AF当前正在以连续自动对焦模式执行AF扫描，以启动照相机设备。");
                 return;
             case CONTROL_AF_STATE_PASSIVE_FOCUSED:
-                Log.d("xx", "logFocus: AF当前认为它已成为焦点，但可能随时重启扫描。");
+                Log.d("xx", "logAF: AF当前认为它已成为焦点，但可能随时重启扫描。");
                 return;
             case CONTROL_AF_STATE_ACTIVE_SCAN:
-                Log.d("xx", "logFocus: AF正在执行AF扫描，因为它是由AF触发器触发的。");
+                Log.d("xx", "logAF: AF正在执行AF扫描，因为它是由AF触发器触发的。");
                 return;
             case CONTROL_AF_STATE_FOCUSED_LOCKED:
-                Log.d("xx", "logFocus: AF认为对焦正确并锁定了焦点");
+                Log.d("xx", "logAF: AF认为对焦正确并锁定了焦点");
                 return;
             case CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
-                Log.d("xx", "logFocus: 焦点失败");
+                Log.d("xx", "logAF: 焦点失败");
                 return;
-            case  -1:
-                Log.d("xx", "logFocus: null");
+            case CONTROL_AF_STATE_PASSIVE_UNFOCUSED:
+                Log.d("xx", "logAF: 自动对焦完成被动扫描而没有找到焦点，并且可能随时重启扫描");
+                return;
+            case -1:
+                Log.d("xx", "logAF: null");
+        }
+    }
+
+    public static void logAE(CaptureResult captureResult) {
+        Object o = captureResult.get(CaptureResult.CONTROL_AE_STATE);
+        int afStatus = -1;
+        if (o != null)
+            afStatus = (int) o;
+        switch (afStatus) {
+            case CONTROL_AE_STATE_INACTIVE:
+                Log.d("xx", "logAE: AE已关闭或最近已重置。");
+                return;
+            case CONTROL_AE_STATE_SEARCHING:
+                Log.d("xx", "logAE: AE对于当前场景还没有很好的控制值集。");
+                return;
+            case CONTROL_AE_STATE_CONVERGED:
+                Log.d("xx", "logAE: AE具有当前场景的一组好的控制值");
+                return;
+            case CONTROL_AE_STATE_LOCKED:
+                Log.d("xx", "logAE: AE已被锁定。");
+                return;
+            case CONTROL_AE_STATE_FLASH_REQUIRED:
+                Log.d("xx", "logAE: AE具有一组良好的控制值，但是需要闪光以获取高质量的闪光。");
+                return;
+            case CONTROL_AE_STATE_PRECAPTURE:
+                Log.d("xx", "logAE: 已要求AE执行预捕获序列，目前正在执行它。");
+                return;
+            case -1:
+                Log.d("xx", "logAE: null");
         }
     }
 }
