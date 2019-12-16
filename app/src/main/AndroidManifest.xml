@@ -4,6 +4,8 @@
     package="android.com.opengldome">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".Application"
@@ -32,6 +34,7 @@
         <activity android:name=".gltextureview.TextGLActivity" />
         <activity android:name=".beauty.BeautyActivity" />
         <activity android:name=".camera2.Camera2Activity" />
+        <activity android:name=".camera2.CameraPreviewActivity" />
     </application>
 
 </manifest>

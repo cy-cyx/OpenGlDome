@@ -41,10 +41,6 @@ public class BitmapUtils {
         return is;
     }
 
-    public static void saveBitmap(Context context, String path, Bitmap bitmap) {
-        saveBitmap(context, path, bitmap, true);
-    }
-
     public static void saveBitmap(Context context, String path, Bitmap bitmap,
                                   boolean addToMediaStore) {
         final File file = new File(path);
@@ -58,7 +54,7 @@ public class BitmapUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fOut);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
         try {
             fOut.flush();
             fOut.close();

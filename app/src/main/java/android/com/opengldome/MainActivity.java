@@ -68,7 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
         checkSupportGLES30();
 
-        PermissionUtil.requestRuntimePermissions(this, new String[]{Manifest.permission.CAMERA}, new PermissionUtil.IPermissionCallback() {
+        PermissionUtil.requestRuntimePermissions(this, new String[]{Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE}, new PermissionUtil.IPermissionCallback() {
             @Override
             public void nextStep() {
 

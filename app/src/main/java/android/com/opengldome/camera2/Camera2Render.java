@@ -4,7 +4,9 @@ import android.com.opengldome.Application;
 import android.com.opengldome.beauty.GLFrameBuffer;
 import android.com.opengldome.beauty.LookupTableFilter;
 import android.com.opengldome.egl.GLTextureView;
+import android.com.opengldome.utils.BitmapUtils;
 import android.com.opengldome.utils.CommonUtils;
+import android.com.opengldome.utils.FileUtils;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -157,8 +159,10 @@ public class Camera2Render implements GLTextureView.GlRender {
                 Bitmap bitmap = Bitmap.createBitmap(cropWidth, cropHeight, Bitmap.Config.ARGB_8888);
                 buffer.rewind();
                 bitmap.copyPixelsFromBuffer(buffer);
-
-                Message.obtain(mainHandle, Camera2Activity.MainHandle.MSG_DEALPIC_SUCCESS, bitmap).sendToTarget();
+                String picPath = FileUtils.getCacheBitmapPath(Application.getInstance());
+                BitmapUtils.saveBitmap(Application.getInstance(), picPath,
+                        bitmap, false);
+                Message.obtain(mainHandle, Camera2Activity.MainHandle.MSG_DEALPIC_SUCCESS, picPath).sendToTarget();
             }
         };
         GLTextureView glTextureView = glTextureViewWeakReference.get();

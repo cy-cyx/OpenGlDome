@@ -2,7 +2,7 @@ package android.com.opengldome.camera2;
 
 import android.com.opengldome.camera2.utils.CameraUtil;
 import android.com.opengldome.camera2.view.ControlLayout;
-import android.graphics.Bitmap;
+import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.os.Handler;
@@ -136,6 +136,12 @@ public class Camera2Activity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    public void gotoPreview(String s) {
+        Intent intent = new Intent(this, CameraPreviewActivity.class);
+        intent.putExtra(CameraPreviewActivity.KEY_DATA, s);
+        startActivity(intent);
+    }
+
     /**
      * 用于异步回调
      */
@@ -155,8 +161,10 @@ public class Camera2Activity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_DEALPIC_SUCCESS:
-                    Bitmap bitmap = (Bitmap) msg.obj;
-
+                    String bitmapPath = (String) msg.obj;
+                    Camera2Activity camera2Activity = camera2ActivityWeakReference.get();
+                    if (camera2Activity != null)
+                        camera2Activity.gotoPreview(bitmapPath);
                     break;
             }
         }
