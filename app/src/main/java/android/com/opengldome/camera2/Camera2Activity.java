@@ -2,14 +2,20 @@ package android.com.opengldome.camera2;
 
 import android.com.opengldome.camera2.utils.CameraUtil;
 import android.com.opengldome.camera2.view.ControlLayout;
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Size;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.lang.ref.WeakReference;
 
 /**
  * create by cy
@@ -28,10 +34,12 @@ public class Camera2Activity extends AppCompatActivity {
     private ControlLayout.ControlLayoutCallback controlLayoutCallback;
     private CameraThread.CameraThreadCallBack cameraThreadCallBack;
 
+    private MainHandle mainHandle;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CameraUtil.getPreViewRotation(this);
+        mainHandle = new MainHandle(Looper.myLooper(), this);
         initListen();
         initCamera();
         initView();
@@ -73,7 +81,7 @@ public class Camera2Activity extends AppCompatActivity {
 
             @Override
             public void onCapture(byte[] data, boolean front, int width, int height) {
-
+                camera2Render.dealPicture(data, front, width, height, mainHandle);
             }
         };
     }
@@ -126,5 +134,31 @@ public class Camera2Activity extends AppCompatActivity {
     protected void onDestroy() {
         cameraThread.release();
         super.onDestroy();
+    }
+
+    /**
+     * 用于异步回调
+     */
+    public static class MainHandle extends Handler {
+
+        public static final int MSG_DEALPIC_SUCCESS = 0;
+
+        public WeakReference<Camera2Activity> camera2ActivityWeakReference;
+
+        public MainHandle(Looper looper, Camera2Activity activity) {
+            super(looper);
+            camera2ActivityWeakReference = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_DEALPIC_SUCCESS:
+                    Bitmap bitmap = (Bitmap) msg.obj;
+
+                    break;
+            }
+        }
     }
 }

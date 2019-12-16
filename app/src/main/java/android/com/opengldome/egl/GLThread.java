@@ -21,6 +21,7 @@ public class GLThread extends Thread {
     private static final int MSG_REQUEST_RENDER = 3;   // 请求绘制
     private static final int MSG_SURFACE_DESTROY = 4;  // surface销毁
     private static final int MSG_RELEASE = 5;           // 回收
+    private static final int MSG_EXECUTE = 6;           // 执行特定的事务
 
     private EGLHelp eglHelp;
     private volatile GLHandler gLHandler;
@@ -72,6 +73,10 @@ public class GLThread extends Thread {
         Message.obtain(getHandler(), MSG_RELEASE).sendToTarget();
     }
 
+    public void execute(Runnable runnable) {
+        Message.obtain(getHandler(), MSG_EXECUTE, runnable).sendToTarget();
+    }
+
     private GLHandler getHandler() {
         synchronized (this) {
             while (gLHandler == null) {
@@ -116,10 +121,16 @@ public class GLThread extends Thread {
     }
 
     private void quitSafely() {
+        quit = true;
         Looper looper = Looper.myLooper();
         if (looper != null) {
             looper.quitSafely();
         }
+    }
+
+    private void executeWork(Runnable work) {
+        if (quit) return;
+        work.run();
     }
 
     private boolean canDraw() {
@@ -168,6 +179,13 @@ public class GLThread extends Thread {
                     glThread = glThreadWeakReference.get();
                     if (glThread != null) {
                         glThread.finishAndRelease();
+                    }
+                    break;
+                case MSG_EXECUTE:
+                    Runnable runnable = (Runnable) msg.obj;
+                    glThread = glThreadWeakReference.get();
+                    if (glThread != null) {
+                        glThread.executeWork(runnable);
                     }
                     break;
             }

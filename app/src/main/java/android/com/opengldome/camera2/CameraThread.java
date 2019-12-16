@@ -3,6 +3,7 @@ package android.com.opengldome.camera2;
 import android.annotation.SuppressLint;
 import android.com.opengldome.camera2.utils.CameraUtil;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -50,6 +51,10 @@ import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_NOT_FOCUS
  * version : 1.0
  * Features : 该线程中管理着{@link android.graphics.Camera}
  * xxxInner()方法说明运行相机专属的线程中
+ * 1、点击聚焦测光 ✔
+ * 2、镜头翻转 ✔
+ * 3、拍照 ✔
+ * 4、关于生命周期的处理 ✔
  */
 public class CameraThread extends Thread {
 
@@ -152,11 +157,10 @@ public class CameraThread extends Thread {
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
-                if (cameraConfig.rotationIs90of270()) {
-                    cameraThreadCallBack.onCapture(bytes, cameraConfig.cameraId.equals("1"), cameraConfig.outSize.getHeight(), cameraConfig.outSize.getWidth());
-                } else {
-                    cameraThreadCallBack.onCapture(bytes, cameraConfig.cameraId.equals("1"), cameraConfig.outSize.getWidth(), cameraConfig.outSize.getHeight());
-                }
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                cameraThreadCallBack.onCapture(bytes, cameraConfig.cameraId.equals("1"), options.outWidth, options.outHeight);
             }
         };
     }
@@ -215,7 +219,7 @@ public class CameraThread extends Thread {
             }
             return outputSizes[0];
         }
-        return null;
+        return new Size(cameraConfig.maxWidth, cameraConfig.maxHeight);
     }
 
     public void setCameraConfig(CameraConfig cameraConfig) {

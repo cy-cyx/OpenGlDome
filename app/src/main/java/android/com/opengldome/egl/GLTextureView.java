@@ -37,6 +37,14 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
             glThread.requestRender();
     }
 
+    /**
+     * 在gl线程执行特定的任务
+     */
+    public void execute(Runnable runnable) {
+        if (glThread != null)
+            glThread.execute(runnable);
+    }
+
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         glThread.createSurface(surface);

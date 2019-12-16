@@ -1,10 +1,14 @@
 package android.com.opengldome.utils;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.provider.MediaStore;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,5 +39,39 @@ public class BitmapUtils {
             e.printStackTrace();
         }
         return is;
+    }
+
+    public static void saveBitmap(Context context, String path, Bitmap bitmap) {
+        saveBitmap(context, path, bitmap, true);
+    }
+
+    public static void saveBitmap(Context context, String path, Bitmap bitmap,
+                                  boolean addToMediaStore) {
+        final File file = new File(path);
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        FileOutputStream fOut = null;
+        try {
+            fOut = new FileOutputStream(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fOut);
+        try {
+            fOut.flush();
+            fOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 添加到媒体库
+        if (addToMediaStore) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DATA, path);
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, file.getName());
+            context.getContentResolver().insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        }
     }
 }
