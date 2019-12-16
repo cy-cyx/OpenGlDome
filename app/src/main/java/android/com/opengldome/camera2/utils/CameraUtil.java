@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.com.opengldome.utils.WHView;
 import android.content.Context;
 import android.graphics.Rect;
-import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.util.Log;

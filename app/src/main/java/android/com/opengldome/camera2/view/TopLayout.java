@@ -8,10 +8,16 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+/**
+ * 顶部的布局包含了：
+ * 1、反转
+ * 2、
+ */
 public class TopLayout extends FrameLayout {
 
     private LayoutParams fl;
 
+    private FrameLayout containerFl;
     private ImageView switchIv;
 
     private TopLayoutCallback topLayoutCallback;
@@ -35,12 +41,16 @@ public class TopLayout extends FrameLayout {
     }
 
     private void initView() {
+        containerFl = new FrameLayout(getContext());
+        fl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
+        addView(containerFl, fl);
+
         switchIv = new ImageView(getContext());
         switchIv.setBackgroundResource(R.drawable.ic_switch_camera);
         switchIv.setOnClickListener(onClickListener);
         fl = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         fl.gravity = Gravity.CENTER;
-        addView(switchIv, fl);
+        containerFl.addView(switchIv, fl);
     }
 
     public void setTopLayoutCallback(TopLayoutCallback callback) {

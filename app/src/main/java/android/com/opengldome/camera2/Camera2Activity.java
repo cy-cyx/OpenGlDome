@@ -54,6 +54,11 @@ public class Camera2Activity extends AppCompatActivity {
             public void onFocusClick(int x, int y) {
                 cameraThread.focusAEAF(x, y);
             }
+
+            @Override
+            public void onShutClick() {
+                cameraThread.takePic();
+            }
         };
         cameraThreadCallBack = new CameraThread.CameraThreadCallBack() {
             @Override

@@ -15,6 +15,7 @@ import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -33,6 +34,11 @@ import static android.com.opengldome.camera2.Message.MSG_RELEASE;
 import static android.com.opengldome.camera2.Message.MSG_RESUME;
 import static android.com.opengldome.camera2.Message.MSG_SURFACE_CREATE;
 import static android.com.opengldome.camera2.Message.MSG_SWITCH;
+import static android.com.opengldome.camera2.Message.MSG_TAKEPIC;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_FOCUSED_LOCKED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_INACTIVE;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
+import static android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_FOCUSED;
 
 /**
  * create by cy
@@ -60,6 +66,10 @@ public class CameraThread extends Thread {
     private CameraCaptureSession.CaptureCallback captureCallback; // 相机拍摄结果的统一回调
 
     private boolean inOnPause = false;
+    private boolean inCaptureFocus = false; // 点击拍照前的聚焦
+    private boolean inCapture = false; // 点击拍摄后，不能做其他操作
+
+    private ImageReader imageReader;
 
     public CameraThread(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -83,6 +93,30 @@ public class CameraThread extends Thread {
             public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                 super.onCaptureCompleted(session, request, result);
                 CameraUtil.logFocus(result);
+                // 拍照的情况下
+                if (inCaptureFocus) {
+                    Object o = result.get(CaptureResult.CONTROL_AF_STATE);
+                    if (o == null) {
+                        takePicInner();
+                        inCaptureFocus = false;
+                    } else {
+                        int afAtatus = (int) o;
+                        if (afAtatus == CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                                afAtatus == CONTROL_AF_STATE_PASSIVE_FOCUSED) {
+                            // 聚焦成功 开始拍照
+                            takePicInner();
+                            inCaptureFocus = false;
+                        } else if (afAtatus == CONTROL_AF_STATE_INACTIVE) {
+                            // 部分手机前摄像头（mini）
+                            takePicInner();
+                            inCaptureFocus = false;
+                        } else if (afAtatus == CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
+                            // 失败暂时不重新对焦
+                            takePicInner();
+                            inCaptureFocus = false;
+                        }
+                    }
+                }
             }
 
             @Override
@@ -107,6 +141,9 @@ public class CameraThread extends Thread {
         return new Size[0];
     }
 
+    /**
+     * 获得镜头完整的输出尺寸用的对焦
+     */
     public Size getSensorPixelByCameraId(String id) {
         Size size = null;
         try {
@@ -115,6 +152,14 @@ public class CameraThread extends Thread {
             e.printStackTrace();
         }
         return size;
+    }
+
+    public Size getOutputSize(String id) {
+        try {
+            cameraManager.getCameraCharacteristics(id).get(CameraCharacteristics.)
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setCameraConfig(CameraConfig cameraConfig) {
@@ -200,6 +245,7 @@ public class CameraThread extends Thread {
     }
 
     private void switchCameraInner() {
+        if (capteuring() || inOnPause) return;
         cameraConfig.switchCamera();
         cameraConfig.resetAeAfMode();
         closeCameraInner();
@@ -260,7 +306,7 @@ public class CameraThread extends Thread {
     private void captureInner(CaptureRequest captureRequest) {
         if (inOnPause || curCameraCaptureSession == null) return;
         try {
-            curCameraCaptureSession.capture(captureRequest, null, new Handler());
+            curCameraCaptureSession.capture(captureRequest, captureCallback, new Handler());
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -280,6 +326,7 @@ public class CameraThread extends Thread {
      * @param y 在屏幕坐标的y
      */
     private void focusAeAfInner(int x, int y) {
+        if (capteuring() || inOnPause) return;
         MeteringRectangle[] meteringRectangles = CameraUtil.focusAeAf(x, y,
                 cameraConfig.optimalSize, getSensorPixelByCameraId(cameraConfig.cameraId),
                 cameraConfig.rotation, cameraConfig.cameraId);
@@ -296,6 +343,27 @@ public class CameraThread extends Thread {
         // 开始对焦
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
         captureInner(captureRequestBuilder.build());
+    }
+
+    private boolean capteuring() {
+        return inCapture || inCaptureFocus;
+    }
+
+    /**
+     * 拍照之前的聚焦 - 》 拍照
+     */
+    private void focusToTakePicInner() {
+        if (inOnPause) return;
+        CaptureRequest.Builder captureRequestBuilder = getCaptureRequestBuilderInner(new Surface(oesSurfaceTexture));
+        if (captureRequestBuilder == null) return;
+        RequestBuilderFactory.getRequestBuilderBase(captureRequestBuilder, cameraConfig);
+        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
+        captureInner(captureRequestBuilder.build());
+        inCaptureFocus = true;
+    }
+
+    private void takePicInner() {
+        inCapture = true;
     }
 
     private static class CameraThreadHandler extends Handler {
@@ -356,6 +424,13 @@ public class CameraThread extends Thread {
                     if (cameraThread != null) {
                         cameraThread.focusAeAfInner(viewClickX, viewClickY);
                     }
+                    break;
+                case MSG_TAKEPIC:
+                    cameraThread = cameraThreadWeakReference.get();
+                    if (cameraThread != null) {
+                        cameraThread.focusToTakePicInner();
+                    }
+                    break;
             }
         }
 
@@ -392,6 +467,11 @@ public class CameraThread extends Thread {
         request.put("y", y);
         if (getHandler() != null)
             Message.obtain(getHandler(), MSG_FOCUS, request).sendToTarget();
+    }
+
+    public void takePic() {
+        if (getHandler() != null)
+            Message.obtain(getHandler(), MSG_TAKEPIC, null).sendToTarget();
     }
 
     public void setCameraThreadCallBack(CameraThreadCallBack callBack) {
