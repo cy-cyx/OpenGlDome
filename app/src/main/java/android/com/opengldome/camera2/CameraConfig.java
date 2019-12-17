@@ -13,8 +13,8 @@ import android.util.Size;
  */
 public class CameraConfig {
 
-    public final int maxWidth = 1680;
-    public final int maxHeight = 1920;
+    public final int maxWidth = 4096;
+    public final int maxHeight = 4096;
 
 
     /**

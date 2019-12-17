@@ -226,6 +226,7 @@ public class CameraThread extends Thread {
             };
             Collections.sort(list, comparator);
 
+            // todo 应该用输出的最大尺寸，在纹理那里才去缩放
             for (Size size : list) {
                 if (cameraConfig.rotationIs90of270()) {
                     if (size.getWidth() <= cameraConfig.maxHeight && size.getHeight() <= cameraConfig.maxWidth) {
