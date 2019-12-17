@@ -63,11 +63,16 @@ public class BitmapUtils {
         }
         // 添加到媒体库
         if (addToMediaStore) {
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DATA, path);
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, file.getName());
-            context.getContentResolver().insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            addToMediaStore(context, path);
         }
+    }
+
+    public static void addToMediaStore(Context context, String path) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DATA, path);
+        File file = new File(path);
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, file.getName());
+        context.getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
     }
 }

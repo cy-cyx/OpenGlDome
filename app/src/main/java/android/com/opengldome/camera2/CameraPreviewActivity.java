@@ -1,10 +1,10 @@
 package android.com.opengldome.camera2;
 
 import android.com.opengldome.Application;
+import android.com.opengldome.utils.BitmapUtils;
 import android.com.opengldome.utils.FileUtils;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,7 +46,9 @@ public class CameraPreviewActivity extends AppCompatActivity {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            FileUtils.copyFile(pic, FileUtils.getDCIMBitmapPath(Application.getInstance()));
+                            String path = FileUtils.getDCIMBitmapPath(Application.getInstance());
+                            FileUtils.copyFile(pic, path);
+                            BitmapUtils.addToMediaStore(CameraPreviewActivity.this, path);
                             CameraPreviewActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
