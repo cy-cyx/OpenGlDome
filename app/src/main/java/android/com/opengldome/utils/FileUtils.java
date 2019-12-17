@@ -39,7 +39,7 @@ public class FileUtils {
     }
 
     public static String getDCIMBitmapPath(Context context) {
-        return getPhotoSavePath() + File.separator + "DCIM" +
+        return getPhotoSavePath() +
                 File.separator + System.currentTimeMillis() + ".jpg";
     }
 
@@ -87,8 +87,6 @@ public class FileUtils {
 
     public static void copyFile(String oldPath, String newPath) {
         try {
-            makeFolder(newPath);
-
             FileInputStream fileInputStream = new FileInputStream(oldPath);
             FileOutputStream fileOutputStream = new FileOutputStream(newPath);
             byte[] buffer = new byte[1024];

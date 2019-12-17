@@ -30,7 +30,10 @@ import androidx.annotation.NonNull;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 import static android.com.opengldome.camera2.Message.MSG_FOCUS;
 import static android.com.opengldome.camera2.Message.MSG_PAUSE;
@@ -205,8 +208,25 @@ public class CameraThread extends Thread {
             e.printStackTrace();
         }
         if (streamConfigurationMap != null) {
+            // 这里的输出不是顺序排序的（例如华为机型）
             Size[] outputSizes = streamConfigurationMap.getOutputSizes(ImageFormat.JPEG);
-            for (Size size : outputSizes) {
+
+            // 从大到小排序
+            List<Size> list = Arrays.asList(outputSizes);
+            Comparator<Size> comparator = new Comparator<Size>() {
+                @Override
+                public int compare(Size o1, Size o2) {
+                    if (o1.getWidth() < o2.getWidth()) {
+                        return 1;
+                    } else if (o1.getWidth() > o2.getWidth()) {
+                        return -1;
+                    }
+                    return 0;
+                }
+            };
+            Collections.sort(list, comparator);
+
+            for (Size size : list) {
                 if (cameraConfig.rotationIs90of270()) {
                     if (size.getWidth() <= cameraConfig.maxHeight && size.getHeight() <= cameraConfig.maxWidth) {
                         return size;
