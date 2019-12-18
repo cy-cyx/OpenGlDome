@@ -9,6 +9,7 @@ import android.com.opengldome.fbo.FBOActivity;
 import android.com.opengldome.gltextureview.TextGLActivity;
 import android.com.opengldome.light.LightActivity;
 import android.com.opengldome.mvp.MVPActivity;
+import android.com.opengldome.ndk.NdkActivity;
 import android.com.opengldome.obj.ObjActivity;
 import android.com.opengldome.particsystem.PSActivity;
 import android.com.opengldome.shadows.ShadowsActivity;
@@ -38,12 +39,12 @@ public class MainActivity extends AppCompatActivity {
             MVPActivity.class, LightActivity.class, BlendActivity.class,
             ShadowsActivity.class, TextureActivity.class, ObjActivity.class,
             PSActivity.class, TextGLActivity.class, BeautyActivity.class,
-            Camera2Activity.class};
+            Camera2Activity.class, NdkActivity.class};
     private String[] names = new String[]{"帧缓冲区",
             "MVP矩阵", "冯氏光照模型(平行光)", "混合模式",
             "阴影（深度纹理）", "纹理贴图", "obj3D模型（法线贴图）",
             "粒子系统", "GLTextureView", "颜色滤镜（查色表）",
-            "相机预览"};
+            "相机预览", "使用ndk加载着色器文件"};
 
     private RecyclerView mRecyclerView;
 

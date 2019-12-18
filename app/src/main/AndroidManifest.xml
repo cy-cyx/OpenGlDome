@@ -35,6 +35,7 @@
         <activity android:name=".beauty.BeautyActivity" />
         <activity android:name=".camera2.Camera2Activity" />
         <activity android:name=".camera2.CameraPreviewActivity" />
+        <activity android:name=".ndk.NdkActivity" />
     </application>
 
 </manifest>
