@@ -113,6 +113,15 @@ https://www.jianshu.com/p/49dcab6a1f75
 
 (2) 触发对焦
 
+5、实现拍照 （离屏渲染）
+
+**13、jni**
+
+实现jni编写opengl
+
+注意：全局搜索 Fixme CMAKE 其中注释两种linkC的方法
+一种是使用CMake调试和编译比较慢 一种直接使用so包
+
 **utils文件下**
 
 通用工具
