@@ -4,6 +4,7 @@
 extern "C" GLuint loadShader(GLenum type, GLchar **shape, GLint length) {
     GLuint resultShape = glCreateShader(type);
     glShaderSource(resultShape, 1, shape, &length);
+    glCompileShader(resultShape);
     return resultShape;
 }
 
