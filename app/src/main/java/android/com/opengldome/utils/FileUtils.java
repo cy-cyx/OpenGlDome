@@ -101,4 +101,9 @@ public class FileUtils {
             e.printStackTrace();
         }
     }
+
+    public static String getNewMp4Path() {
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
+                + "OpenGlDome" + File.separator + System.currentTimeMillis() + ".mp4";
+    }
 }
