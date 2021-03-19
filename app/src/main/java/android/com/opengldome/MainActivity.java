@@ -16,6 +16,7 @@ import android.com.opengldome.shadows.ShadowsActivity;
 import android.com.opengldome.texture.TextureActivity;
 import android.com.opengldome.utils.PermissionUtil;
 import android.com.opengldome.utils.WHView;
+import android.com.opengldome.watermark.WaterMarkActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,12 +40,12 @@ public class MainActivity extends AppCompatActivity {
             MVPActivity.class, LightActivity.class, BlendActivity.class,
             ShadowsActivity.class, TextureActivity.class, ObjActivity.class,
             PSActivity.class, TextGLActivity.class, BeautyActivity.class,
-            Camera2Activity.class, NdkActivity.class};
+            Camera2Activity.class, NdkActivity.class, WaterMarkActivity.class};
     private String[] names = new String[]{"帧缓冲区",
             "MVP矩阵", "冯氏光照模型(平行光)", "混合模式",
             "阴影（深度纹理）", "纹理贴图", "obj3D模型（法线贴图）",
             "粒子系统", "GLTextureView", "颜色滤镜（查色表）",
-            "相机预览", "使用ndk加载着色器文件"};
+            "相机预览", "使用ndk加载着色器文件","视频加水印"};
 
     private RecyclerView mRecyclerView;
 
