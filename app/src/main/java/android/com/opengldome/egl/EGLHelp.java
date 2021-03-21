@@ -21,10 +21,19 @@ import static android.opengl.EGL14.EGL_OPENGL_ES2_BIT;
  */
 public class EGLHelp {
 
-    private EGLDisplay mEglDisplay;
+
+    private EGLDisplay mEglDisplay = EGL14.EGL_NO_DISPLAY;
     private EGLConfig mEglConfig;
-    private EGLContext mEglContext;
-    private EGLSurface mEglSurface;
+    private EGLContext mEglContext = EGL14.EGL_NO_CONTEXT;
+    private EGLSurface mEglSurface = EGL14.EGL_NO_SURFACE;
+
+    public EGLSurface getmEglSurface() {
+        return mEglSurface;
+    }
+
+    public EGLDisplay getmEglDisplay() {
+        return mEglDisplay;
+    }
 
     public void start() {
         // 创建display
@@ -74,7 +83,7 @@ public class EGLHelp {
         mEglSurface = null;
     }
 
-    public boolean createSurface(SurfaceTexture surfaceTexture) {
+    public boolean createSurface(Object surfaceTexture) {
         destroySurfaceImp();
 
         // 创建surface

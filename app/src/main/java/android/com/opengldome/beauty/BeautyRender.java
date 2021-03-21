@@ -32,7 +32,7 @@ public class BeautyRender implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         lookupTableFilter = new LookupTableFilter(Application.getInstance());
         BitmapFactory.Options options = new BitmapFactory.Options();
-        options.outConfig = Bitmap.Config.ARGB_8888;
+//        options.outConfig = Bitmap.Config.ARGB_8888;
         sourceTexture = CommonUtils.newTexture(0, BitmapFactory.decodeResource(Application.getInstance().getResources(), R.drawable.pic3, options));
     }
 

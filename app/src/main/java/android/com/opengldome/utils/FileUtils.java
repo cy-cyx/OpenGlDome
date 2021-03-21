@@ -103,6 +103,11 @@ public class FileUtils {
     }
 
     public static String getNewMp4Path() {
+
+        // 新建目录
+        new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
+                + "OpenGlDome").mkdirs();
+
         return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
                 + "OpenGlDome" + File.separator + System.currentTimeMillis() + ".mp4";
     }

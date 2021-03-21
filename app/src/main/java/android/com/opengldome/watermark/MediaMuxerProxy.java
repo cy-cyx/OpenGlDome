@@ -13,11 +13,11 @@ import java.nio.ByteBuffer;
  * <p>
  * 混合器
  */
-public class MediaMuxerProxy {
+class MediaMuxerProxy {
 
     private MediaMuxer mediaMuxer;
 
-    public MediaMuxerProxy() {
+    MediaMuxerProxy() {
         try {
             mediaMuxer = new MediaMuxer(FileUtils.getNewMp4Path(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
         } catch (IOException e) {
@@ -25,15 +25,27 @@ public class MediaMuxerProxy {
         }
     }
 
-    public void addTrack(MediaFormat format) {
-        mediaMuxer.addTrack(format);
+    int addVideoTrack(MediaFormat format) {
+        return mediaMuxer.addTrack(format);
     }
 
-    public void start(){
+    void setOrientationHint(int degrees) {
+        mediaMuxer.setOrientationHint(degrees);
+    }
+
+    public void start() {
         mediaMuxer.start();
     }
 
-    public synchronized void writeSampleData(int trackIndex, ByteBuffer byteBuf, MediaCodec.BufferInfo bufferInfo) {
+    void stop() {
+        mediaMuxer.stop();
+    }
+
+    void release(){
+        mediaMuxer.release();
+    }
+
+    synchronized void writeSampleData(int trackIndex, ByteBuffer byteBuf, MediaCodec.BufferInfo bufferInfo) {
         mediaMuxer.writeSampleData(trackIndex, byteBuf, bufferInfo);
     }
 }
