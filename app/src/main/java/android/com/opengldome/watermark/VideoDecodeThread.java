@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static android.com.opengldome.watermark.WaterMarkProcess.OAS_AVAILABLE;
 import static android.com.opengldome.watermark.WaterMarkProcess.VIDEO_DECODE_FINISH;
 import static android.media.MediaFormat.KEY_MIME;
+import static android.media.MediaFormat.KEY_ROTATION;
 
 class VideoDecodeThread implements Runnable {
 
@@ -100,6 +101,11 @@ class VideoDecodeThread implements Runnable {
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     // 输出格式已更改
                     MediaFormat mediaFormat = mDecodeMediaCodec.getOutputFormat();
+                    if (videoMediaFormat.containsKey(KEY_ROTATION)) {
+                        mediaFormat.setInteger(KEY_ROTATION, videoMediaFormat.getInteger(KEY_ROTATION));
+                    } else {
+                        mediaFormat.setInteger(KEY_ROTATION, 0);
+                    }
                     Message.obtain(waterMarkHandler, WaterMarkProcess.VIDEO_FORMAT, mediaFormat).sendToTarget();
                 } else if (decoderStatus < 0) {
                     // 没有可用输出

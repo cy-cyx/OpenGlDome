@@ -19,6 +19,7 @@ import java.io.IOException;
 import static android.media.MediaFormat.KEY_FRAME_RATE;
 import static android.media.MediaFormat.KEY_I_FRAME_INTERVAL;
 import static android.media.MediaFormat.KEY_LEVEL;
+import static android.media.MediaFormat.KEY_ROTATION;
 
 /**
  * create by caiyx in 2021/3/19
@@ -99,10 +100,14 @@ public class WaterMarkProcess implements Runnable {
 
     // 解码器返回视频参数
     private void initFormat(MediaFormat format) {
+        // 设置方向
+        int rotation = format.getInteger(KEY_ROTATION);
+        mediaMuxerProxy.setOrientationHint(rotation);
+
         // 构建编码器,并启动编码线程
         startEncode(format);
 
-        render.onSurfaceChange(width, height);
+        render.onSurfaceChange(width, height, rotation);
     }
 
     private int width;

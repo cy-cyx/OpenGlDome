@@ -12,8 +12,8 @@ class WaterMarkRender {
         waterMarkFilter = new WaterMarkFilter(Application.getInstance());
     }
 
-    public void onSurfaceChange(int width, int height) {
-        waterMarkFilter.upDataMatrix(width, height);
+    public void onSurfaceChange(int width, int height, int rotation) {
+        waterMarkFilter.upDataMatrix(width, height, rotation);
     }
 
     void onDraw(int src, int width, int height) {

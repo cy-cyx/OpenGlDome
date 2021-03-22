@@ -42,29 +42,51 @@ class WaterMarkFilter extends AFilter {
         mTexture = CommonUtils.newTexture(1, BitmapFactory.decodeResource(Application.getInstance().getResources(), R.drawable.water_mark_674_108));
     }
 
-    public void upDataMatrix(int wight, int height) {
+    public void upDataMatrix(int wight, int height, int rotation) {
         float[] transfer = new float[16];
         float[] scale = new float[16];
+        float[] rotater = new float[16];
 
-        float[] temp = new float[16];
-        Matrix.setIdentityM(temp, 0);
 
-        // 先移到到中间
-        Matrix.setIdentityM(transfer, 0);
-        Matrix.translateM(transfer, 0, 0, 1928 / 2022f, 0);
+        if (rotation == 0) {
+            // 先移到到中间
+            Matrix.setIdentityM(transfer, 0);
+            Matrix.translateM(transfer, 0, 0, 1928 / 2022f, 0);
 
-        // 缩放
-        Matrix.setIdentityM(scale, 0);
-        Matrix.scaleM(scale, 0, 1, wight / (float) height, 1);
+            // 缩放
+            Matrix.setIdentityM(scale, 0);
+            Matrix.scaleM(scale, 0, 1, wight / (float) height, 1);
 
-        Matrix.multiplyMM(temp, 0, scale, 0, transfer, 0);
+            Matrix.multiplyMM(matrix, 0, scale, 0, transfer, 0);
 
-        // 再挪到原来的地方
-        Matrix.setIdentityM(transfer, 0);
-        Matrix.translateM(transfer, 0, 0, -(2022 - 40 - 108 * wight / (float) height / 2) / 2022f, 0);
+            // 再挪到原来的地方
+            Matrix.setIdentityM(transfer, 0);
+            Matrix.translateM(transfer, 0, 0, -(2022 - 40 - 108 * wight / (float) height / 2) / 2022f, 0);
 
-        Matrix.multiplyMM(matrix, 0, transfer, 0, temp, 0);
+            Matrix.multiplyMM(matrix, 0, transfer, 0, matrix, 0);
+        } else if (rotation == 90) {
+            // 先旋转
+            Matrix.setIdentityM(rotater, 0);
+            Matrix.rotateM(rotater, 0, rotation, 0, 0, 1);
 
+            // 先移到到中间
+            Matrix.setIdentityM(transfer, 0);
+            Matrix.translateM(transfer, 0, -1928 / 2022f, 0, 0);
+
+            Matrix.multiplyMM(matrix, 0, transfer, 0, rotater, 0);
+
+            // 缩放
+            Matrix.setIdentityM(scale, 0);
+            Matrix.scaleM(scale, 0, height / (float) wight, 1, 1);
+
+            Matrix.multiplyMM(matrix, 0, scale, 0, matrix, 0);
+
+            // 再挪到原来的地方
+            Matrix.setIdentityM(transfer, 0);
+            Matrix.translateM(transfer, 0, (2022 - 40 - 108 * height / (float) wight / 2) / 2022f, 0, 0);
+
+            Matrix.multiplyMM(matrix, 0, transfer, 0, matrix, 0);
+        }
     }
 
     @Override
