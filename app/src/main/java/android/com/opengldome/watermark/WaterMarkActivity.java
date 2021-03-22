@@ -66,7 +66,6 @@ public class WaterMarkActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.setTitle("加水印中。。");
-        progressDialog.show();
     }
 
 
