@@ -28,7 +28,7 @@ import static android.media.MediaFormat.KEY_LEVEL;
 public class WaterMarkProcess implements Runnable {
 
     private String videoPath;
-    private WaterMarkHandler markHandler;
+    private WaterMarkHandler waterMarkHandler;
 
     private EGLHelp eglHelp;
     private WaterMarkRender render;
@@ -53,20 +53,22 @@ public class WaterMarkProcess implements Runnable {
 
     @Override
     public void run() {
+        Log.d("xx", "开始加水印线程");
         Looper.prepare();
 
-        markHandler = new WaterMarkHandler();
+        waterMarkHandler = new WaterMarkHandler();
 
         initGl();
 
         // 视频解码
-        videoDecodeThread = new VideoDecodeThread(markHandler, videoPath, oesSurfaceTexture);
+        videoDecodeThread = new VideoDecodeThread(waterMarkHandler, videoPath, oesSurfaceTexture);
         new Thread(videoDecodeThread).start();
 
         // 构建混合器
         mediaMuxerProxy = new MediaMuxerProxy();
 
         Looper.loop();
+        Log.d("xx", "加水印线程结束");
     }
 
     private void initGl() {
@@ -89,6 +91,8 @@ public class WaterMarkProcess implements Runnable {
     private void initFormat(MediaFormat format) {
         // 构建编码器,并启动编码线程
         startEncode(format);
+
+        render.onSurfaceChange(width, height);
     }
 
     private int width;
@@ -122,7 +126,7 @@ public class WaterMarkProcess implements Runnable {
             encoder.start();
 
             // 启动编码线程
-            videoEncodeThread = new VideoEncodeThread(encoder, mediaMuxerProxy);
+            videoEncodeThread = new VideoEncodeThread(encoder, mediaMuxerProxy, waterMarkHandler);
             new Thread(videoEncodeThread).start();
 
         } catch (IOException e) {
@@ -146,14 +150,26 @@ public class WaterMarkProcess implements Runnable {
         videoDecodeThread.consume.set(false);
     }
 
-    // 通知解码结束
+    // 通知解码结束，没有新的需要加水印的帧了
     private void videoDecodeFinish() {
         encoder.signalEndOfInputStream();
+
+        // 停止绘画线程
+        eglHelp.destroySurface();
+        eglHelp.finish();
+    }
+
+    private void finishProcess() {
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            looper.quitSafely();
+        }
     }
 
     static final int VIDEO_FORMAT = 1;
     static final int OAS_AVAILABLE = 2;
     static final int VIDEO_DECODE_FINISH = 3;
+    static final int ALL_ENCODE_FINISH = 4;
 
     class WaterMarkHandler extends Handler {
 
@@ -170,6 +186,9 @@ public class WaterMarkProcess implements Runnable {
                     break;
                 case VIDEO_DECODE_FINISH:
                     videoDecodeFinish();
+                    break;
+                case ALL_ENCODE_FINISH:
+                    finishProcess();
                     break;
             }
         }

@@ -29,7 +29,7 @@ public class AFilter {
             1f, 0f,              // 右上角
             1f, 1f              // 右下角
     };
-    private FloatBuffer bCoord;
+    protected FloatBuffer bCoord;
 
     private final float[] sOESCoord = {
             0f, 1f,             // 左上角
@@ -44,8 +44,8 @@ public class AFilter {
 
     protected int program;
 
-    private int position;
-    private int texcoord;
+    protected int position;
+    protected int texcoord;
     private int sourceTexture;
 
     private GLFrameBuffer glFrameBuffer;
@@ -85,7 +85,7 @@ public class AFilter {
         }
     }
 
-    private void clear() {
+    protected void clear() {
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT);
     }
 

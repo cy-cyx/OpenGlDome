@@ -1,6 +1,7 @@
 package android.com.opengldome.watermark;
 
 import android.media.MediaCodec;
+import android.os.Message;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
@@ -10,10 +11,12 @@ public class VideoEncodeThread implements Runnable {
 
     private MediaCodec mediaCodec;
     private MediaMuxerProxy mediaMuxerProxy;
+    private WaterMarkProcess.WaterMarkHandler waterMarkHandler;
 
-    VideoEncodeThread(MediaCodec encode, MediaMuxerProxy proxy) {
+    VideoEncodeThread(MediaCodec encode, MediaMuxerProxy proxy,WaterMarkProcess.WaterMarkHandler handler) {
         mediaCodec = encode;
         mediaMuxerProxy = proxy;
+        waterMarkHandler = handler;
     }
 
     @Override
@@ -53,5 +56,6 @@ public class VideoEncodeThread implements Runnable {
         mediaMuxerProxy.stop();
         mediaMuxerProxy.release();
         Log.d("xx", "编码线程结束");
+        Message.obtain(waterMarkHandler,WaterMarkProcess.ALL_ENCODE_FINISH).sendToTarget();
     }
 }
