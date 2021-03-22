@@ -27,6 +27,8 @@ import static android.media.MediaFormat.KEY_LEVEL;
  */
 public class WaterMarkProcess implements Runnable {
 
+    private WaterMarkProcessCallBack waterMarkProcessCallBack;
+
     private String videoPath;
     private WaterMarkHandler waterMarkHandler;
 
@@ -47,8 +49,12 @@ public class WaterMarkProcess implements Runnable {
     // 混合器
     private MediaMuxerProxy mediaMuxerProxy;
 
-    WaterMarkProcess(String path) {
+    // 音频整合线程
+    private AudioMixThread audioMixThread;
+
+    WaterMarkProcess(String path, WaterMarkProcessCallBack callBack) {
         videoPath = path;
+        waterMarkProcessCallBack = callBack;
     }
 
     @Override
@@ -66,6 +72,10 @@ public class WaterMarkProcess implements Runnable {
 
         // 构建混合器
         mediaMuxerProxy = new MediaMuxerProxy();
+
+        // 音频整合
+        audioMixThread = new AudioMixThread(waterMarkHandler, videoPath, mediaMuxerProxy);
+        new Thread(audioMixThread).start();
 
         Looper.loop();
         Log.d("xx", "加水印线程结束");
@@ -160,6 +170,9 @@ public class WaterMarkProcess implements Runnable {
     }
 
     private void finishProcess() {
+
+        waterMarkProcessCallBack.onFinish();
+
         Looper looper = Looper.myLooper();
         if (looper != null) {
             looper.quitSafely();
@@ -192,5 +205,9 @@ public class WaterMarkProcess implements Runnable {
                     break;
             }
         }
+    }
+
+    interface WaterMarkProcessCallBack {
+        void onFinish();
     }
 }

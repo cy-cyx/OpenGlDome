@@ -10,10 +10,10 @@ import java.util.LinkedList;
 public class VideoEncodeThread implements Runnable {
 
     private MediaCodec mediaCodec;
-    private MediaMuxerProxy mediaMuxerProxy;
+    private final MediaMuxerProxy mediaMuxerProxy;
     private WaterMarkProcess.WaterMarkHandler waterMarkHandler;
 
-    VideoEncodeThread(MediaCodec encode, MediaMuxerProxy proxy,WaterMarkProcess.WaterMarkHandler handler) {
+    VideoEncodeThread(MediaCodec encode, MediaMuxerProxy proxy, WaterMarkProcess.WaterMarkHandler handler) {
         mediaCodec = encode;
         mediaMuxerProxy = proxy;
         waterMarkHandler = handler;
@@ -30,8 +30,22 @@ public class VideoEncodeThread implements Runnable {
                 // 呼叫超时
             } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 // 输出格式已更改
-                muxerTrack = mediaMuxerProxy.addVideoTrack(mediaCodec.getOutputFormat());
-                mediaMuxerProxy.start();
+
+                // 需要等待音频
+                synchronized (mediaMuxerProxy) {
+                    muxerTrack = mediaMuxerProxy.addVideoTrack(mediaCodec.getOutputFormat());
+                    if (mediaMuxerProxy.canStart()) {
+                        mediaMuxerProxy.start();
+                    }
+                    while (!mediaMuxerProxy.canStart()) {
+                        try {
+                            mediaMuxerProxy.wait();
+                        } catch (InterruptedException e) {
+
+                        }
+                    }
+                }
+
             } else if (decoderStatus < 0) {
                 // 没有可用输出
             } else {
@@ -53,9 +67,16 @@ public class VideoEncodeThread implements Runnable {
             }
 
         }
-        mediaMuxerProxy.stop();
-        mediaMuxerProxy.release();
+
+        synchronized (mediaMuxerProxy) {
+            mediaMuxerProxy.stopVideo();
+
+            if (mediaMuxerProxy.canStop()) {
+                mediaMuxerProxy.stop();
+                mediaMuxerProxy.release();
+                Message.obtain(waterMarkHandler, WaterMarkProcess.ALL_ENCODE_FINISH).sendToTarget();
+            }
+        }
         Log.d("xx", "编码线程结束");
-        Message.obtain(waterMarkHandler,WaterMarkProcess.ALL_ENCODE_FINISH).sendToTarget();
     }
 }

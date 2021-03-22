@@ -1,5 +1,6 @@
 package android.com.opengldome.watermark;
 
+import android.app.ProgressDialog;
 import android.com.opengldome.R;
 import android.com.opengldome.utils.SystemAlbumUtil;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * create by caiyx in 2021/3/19
+ * <p>
+ * 加水印的例子
  */
 public class WaterMarkActivity extends AppCompatActivity {
 
@@ -21,6 +24,8 @@ public class WaterMarkActivity extends AppCompatActivity {
     private Button bnExecute;
 
     private String path;
+
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,10 +46,27 @@ public class WaterMarkActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (path != null) {
-                    new Thread(new WaterMarkProcess(path)).start();
+                    progressDialog.show();
+                    new Thread(new WaterMarkProcess(path, new WaterMarkProcess.WaterMarkProcessCallBack() {
+                        @Override
+                        public void onFinish() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.hide();
+                                }
+                            });
+                        }
+                    })).start();
                 }
             }
         });
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setTitle("加水印中。。");
+        progressDialog.show();
     }
 
 
